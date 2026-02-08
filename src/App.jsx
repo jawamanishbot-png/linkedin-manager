@@ -3,6 +3,8 @@ import PostComposer from './components/PostComposer'
 import PostList from './components/PostList'
 import PostCalendar from './components/PostCalendar'
 import EditPostModal from './components/EditPostModal'
+import SettingsModal from './components/SettingsModal'
+import { isAiConfigured } from './utils/aiUtils'
 import {
   createPost,
   createDraft,
@@ -17,6 +19,8 @@ export default function App() {
   const [posts, setPosts] = useState([])
   const [editingPost, setEditingPost] = useState(null)
   const [showEditModal, setShowEditModal] = useState(false)
+  const [showSettingsModal, setShowSettingsModal] = useState(false)
+  const [aiEnabled, setAiEnabled] = useState(false)
 
   // Load posts from localStorage on mount
   useEffect(() => {
@@ -24,6 +28,8 @@ export default function App() {
     initializeSampleData()
     const loadedPosts = getAllPosts()
     setPosts(loadedPosts)
+    // Check if AI is configured
+    setAiEnabled(isAiConfigured())
   }, [])
 
   const handleSaveDraft = (content, image) => {
@@ -64,11 +70,27 @@ export default function App() {
     setShowEditModal(true)
   }
 
+  const handleSettingsSave = () => {
+    setAiEnabled(isAiConfigured())
+  }
+
   return (
     <div className="app">
       <header className="app-header">
-        <h1>💼 LinkedIn Post Manager</h1>
-        <p>Schedule and manage your LinkedIn posts</p>
+        <div className="header-content">
+          <div>
+            <h1>💼 LinkedIn Post Manager</h1>
+            <p>Schedule and manage your LinkedIn posts</p>
+          </div>
+          <button
+            className={`settings-button ${aiEnabled ? 'enabled' : ''}`}
+            onClick={() => setShowSettingsModal(true)}
+            title="Configure AI"
+          >
+            ⚙️
+            {aiEnabled && <span className="ai-indicator">✓</span>}
+          </button>
+        </div>
       </header>
 
       <div className="app-container">
@@ -99,6 +121,13 @@ export default function App() {
             setShowEditModal(false)
             setEditingPost(null)
           }}
+        />
+      )}
+
+      {showSettingsModal && (
+        <SettingsModal
+          onClose={() => setShowSettingsModal(false)}
+          onSave={handleSettingsSave}
         />
       )}
     </div>
