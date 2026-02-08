@@ -1,0 +1,168 @@
+.post-calendar {
+  background: white;
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.calendar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.calendar-header h3 {
+  margin: 0;
+  font-size: 1.1rem;
+  color: #333;
+  min-width: 150px;
+  text-align: center;
+}
+
+.nav-button {
+  background-color: transparent;
+  border: none;
+  font-size: 1.3rem;
+  cursor: pointer;
+  color: #0a66c2;
+  padding: 4px 8px;
+  transition: all 0.2s ease;
+}
+
+.nav-button:hover {
+  color: #0949a4;
+  background-color: #f0f6ff;
+  border-radius: 4px;
+}
+
+.calendar-weekdays {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+  margin-bottom: 8px;
+}
+
+.weekday {
+  text-align: center;
+  font-weight: 700;
+  font-size: 0.75rem;
+  color: #666;
+  padding: 6px 0;
+  text-transform: uppercase;
+}
+
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+  margin-bottom: 15px;
+}
+
+.calendar-day {
+  position: relative;
+  aspect-ratio: 1;
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
+  background-color: white;
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-weight: 600;
+  transition: all 0.2s ease;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.calendar-day:hover:not(.empty) {
+  border-color: #0a66c2;
+  background-color: #f0f6ff;
+}
+
+.calendar-day.empty {
+  background-color: transparent;
+  border: none;
+  cursor: default;
+  pointer-events: none;
+}
+
+.calendar-day.today {
+  background-color: #dbeafe;
+  border-color: #0a66c2;
+  color: #0a66c2;
+}
+
+.calendar-day.has-posts {
+  border-color: #10b981;
+  background-color: #f0fdf4;
+}
+
+.calendar-day.today.has-posts {
+  background-color: #d1fae5;
+  border-color: #10b981;
+}
+
+.day-number {
+  display: block;
+}
+
+.post-indicator {
+  position: absolute;
+  bottom: 2px;
+  font-size: 0.6rem;
+  color: #10b981;
+}
+
+.calendar-day.today .post-indicator {
+  color: #0a66c2;
+}
+
+.calendar-legend {
+  display: flex;
+  gap: 16px;
+  font-size: 0.85rem;
+  color: #666;
+  justify-content: center;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.legend-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 2px;
+  display: inline-block;
+}
+
+.today-dot {
+  background-color: #dbeafe;
+  border: 1.5px solid #0a66c2;
+}
+
+.has-posts-dot {
+  background-color: #d1fae5;
+  border: 1.5px solid #10b981;
+}
+
+@media (max-width: 768px) {
+  .post-calendar {
+    padding: 16px;
+  }
+
+  .calendar-header {
+    gap: 10px;
+  }
+
+  .calendar-header h3 {
+    font-size: 1rem;
+  }
+
+  .calendar-day {
+    font-size: 0.75rem;
+  }
+}

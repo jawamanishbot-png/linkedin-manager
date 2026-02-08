@@ -1,0 +1,98 @@
+.post-list {
+  background: white;
+  border-radius: 8px;
+  padding: 24px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.list-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.list-header h2 {
+  margin: 0;
+  font-size: 1.3rem;
+  color: #333;
+}
+
+.post-count {
+  font-size: 1rem;
+  color: #666;
+  font-weight: 600;
+}
+
+.filter-tabs {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+  padding-bottom: 15px;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.filter-tab {
+  padding: 8px 16px;
+  border: none;
+  background-color: transparent;
+  color: #666;
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border-bottom: 2px solid transparent;
+}
+
+.filter-tab:hover {
+  color: #0a66c2;
+}
+
+.filter-tab.active {
+  color: #0a66c2;
+  border-bottom-color: #0a66c2;
+}
+
+.posts-container {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 40px 20px;
+  color: #999;
+}
+
+.empty-state p {
+  margin: 10px 0;
+  font-size: 1.1rem;
+}
+
+.empty-text {
+  font-size: 0.95rem !important;
+  color: #bbb;
+}
+
+@media (max-width: 768px) {
+  .post-list {
+    padding: 16px;
+  }
+
+  .list-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .filter-tabs {
+    overflow-x: auto;
+    gap: 5px;
+  }
+
+  .filter-tab {
+    white-space: nowrap;
+    padding: 6px 12px;
+    font-size: 0.85rem;
+  }
+}

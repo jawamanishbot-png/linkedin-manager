@@ -1,35 +1,106 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
+import { useState, useEffect } from 'react'
+import PostComposer from './components/PostComposer'
+import PostList from './components/PostList'
+import PostCalendar from './components/PostCalendar'
+import EditPostModal from './components/EditPostModal'
+import {
+  createPost,
+  createDraft,
+  getAllPosts,
+  deletePost,
+  updatePost,
+  initializeSampleData,
+} from './utils/postUtils'
 import './App.css'
 
-function App() {
-  const [count, setCount] = useState(0)
+export default function App() {
+  const [posts, setPosts] = useState([])
+  const [editingPost, setEditingPost] = useState(null)
+  const [showEditModal, setShowEditModal] = useState(false)
+
+  // Load posts from localStorage on mount
+  useEffect(() => {
+    // Initialize with sample data if empty
+    initializeSampleData()
+    const loadedPosts = getAllPosts()
+    setPosts(loadedPosts)
+  }, [])
+
+  const handleSaveDraft = (content, image) => {
+    const draft = createDraft(content, image)
+    setPosts([...posts, draft])
+    alert('Draft saved!')
+  }
+
+  const handleSchedulePost = (content, image, scheduledTime) => {
+    const post = createPost(content, image, scheduledTime)
+    setPosts([...posts, post])
+    alert('Post scheduled!')
+  }
+
+  const handleEditPost = (post) => {
+    setEditingPost(post)
+    setShowEditModal(true)
+  }
+
+  const handleSaveEdit = (updatedPost) => {
+    const updated = updatePost(updatedPost.id, updatedPost)
+    setPosts(posts.map((p) => (p.id === updatedPost.id ? updated : p)))
+    setShowEditModal(false)
+    setEditingPost(null)
+    alert('Post updated!')
+  }
+
+  const handleDeletePost = (postId) => {
+    if (window.confirm('Delete this post?')) {
+      deletePost(postId)
+      setPosts(posts.filter((p) => p.id !== postId))
+      alert('Post deleted!')
+    }
+  }
+
+  const handleScheduleDraft = (draft) => {
+    setEditingPost(draft)
+    setShowEditModal(true)
+  }
 
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
+    <div className="app">
+      <header className="app-header">
+        <h1>💼 LinkedIn Post Manager</h1>
+        <p>Schedule and manage your LinkedIn posts</p>
+      </header>
+
+      <div className="app-container">
+        <div className="left-panel">
+          <PostComposer
+            onSaveDraft={handleSaveDraft}
+            onSchedule={handleSchedulePost}
+          />
+        </div>
+
+        <div className="right-panel">
+          <PostCalendar posts={posts} onSelectDate={() => {}} />
+
+          <PostList
+            posts={posts}
+            onEdit={handleEditPost}
+            onDelete={handleDeletePost}
+            onSchedule={handleScheduleDraft}
+          />
+        </div>
       </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
+
+      {showEditModal && editingPost && (
+        <EditPostModal
+          post={editingPost}
+          onSave={handleSaveEdit}
+          onCancel={() => {
+            setShowEditModal(false)
+            setEditingPost(null)
+          }}
+        />
+      )}
+    </div>
   )
 }
-
-export default App

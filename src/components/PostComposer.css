@@ -1,0 +1,142 @@
+.post-composer {
+  background: white;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 24px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.post-composer h2 {
+  margin: 0 0 20px 0;
+  font-size: 1.3rem;
+  color: #333;
+}
+
+.post-textarea {
+  width: 100%;
+  min-height: 120px;
+  padding: 12px;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 0.95rem;
+  resize: vertical;
+  transition: border-color 0.2s ease;
+}
+
+.post-textarea:focus {
+  outline: none;
+  border-color: #0a66c2;
+  box-shadow: 0 0 0 3px rgba(10, 102, 194, 0.1);
+}
+
+.char-count {
+  font-size: 0.85rem;
+  color: #666;
+  margin: 8px 0 15px 0;
+  text-align: right;
+}
+
+.schedule-section {
+  margin: 20px 0;
+  padding: 16px;
+  background-color: #f8faff;
+  border-radius: 8px;
+  border: 1px solid #e0e8ff;
+}
+
+.schedule-section h3 {
+  margin: 0 0 15px 0;
+  font-size: 1rem;
+  color: #333;
+}
+
+.schedule-inputs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.input-group label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #333;
+}
+
+.input-group input {
+  padding: 8px 12px;
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
+  font-size: 0.95rem;
+  transition: border-color 0.2s ease;
+}
+
+.input-group input:focus {
+  outline: none;
+  border-color: #0a66c2;
+  box-shadow: 0 0 0 2px rgba(10, 102, 194, 0.1);
+}
+
+.composer-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.btn {
+  padding: 10px 16px;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-primary {
+  background-color: #0a66c2;
+  color: white;
+}
+
+.btn-primary:hover {
+  background-color: #0949a4;
+}
+
+.btn-secondary {
+  background-color: #f0f0f0;
+  color: #333;
+}
+
+.btn-secondary:hover {
+  background-color: #e0e0e0;
+}
+
+.btn-tertiary {
+  background-color: #e9f2ff;
+  color: #0a66c2;
+}
+
+.btn-tertiary:hover {
+  background-color: #d6e8ff;
+}
+
+@media (max-width: 768px) {
+  .post-composer {
+    padding: 16px;
+  }
+
+  .schedule-inputs {
+    grid-template-columns: 1fr;
+  }
+
+  .composer-actions {
+    grid-template-columns: 1fr;
+  }
+}
