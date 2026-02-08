@@ -1,5 +1,8 @@
 import { format, parse, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isSameDay, addMonths, subMonths } from 'date-fns'
 
+// Export isSameDay from date-fns
+export { isSameDay }
+
 // Format date for display (e.g., "Feb 15, 2:30 PM")
 export function formatDateDisplay(dateString) {
   try {
