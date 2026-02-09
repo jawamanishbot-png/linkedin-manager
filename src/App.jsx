@@ -1,16 +1,19 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import PostComposer from './components/PostComposer'
 import PostList from './components/PostList'
 import PostCalendar from './components/PostCalendar'
 import EditPostModal from './components/EditPostModal'
 import SettingsModal from './components/SettingsModal'
+import LinkedInAuth from './components/LinkedInAuth'
 import { isAiConfigured } from './utils/aiUtils'
+import { getLinkedInStatus, publishToLinkedIn } from './utils/linkedinApi'
 import {
   createPost,
   createDraft,
   getAllPosts,
   deletePost,
   updatePost,
+  publishPost,
   initializeSampleData,
 } from './utils/postUtils'
 import './App.css'
@@ -21,16 +24,32 @@ export default function App() {
   const [showEditModal, setShowEditModal] = useState(false)
   const [showSettingsModal, setShowSettingsModal] = useState(false)
   const [aiEnabled, setAiEnabled] = useState(false)
+  const [linkedInStatus, setLinkedInStatus] = useState({ connected: false })
+  const [publishing, setPublishing] = useState(null)
 
-  // Load posts from localStorage on mount
+  // Check for OAuth redirect params in URL
+  const checkOAuthRedirect = useCallback(() => {
+    const params = new URLSearchParams(window.location.search)
+    if (params.get('linkedin_connected') === 'true') {
+      getLinkedInStatus().then(setLinkedInStatus)
+      window.history.replaceState({}, '', window.location.pathname)
+    }
+    const error = params.get('linkedin_error')
+    if (error) {
+      alert(`LinkedIn connection failed: ${error}`)
+      window.history.replaceState({}, '', window.location.pathname)
+    }
+  }, [])
+
+  // Load posts and check LinkedIn status on mount
   useEffect(() => {
-    // Initialize with sample data if empty
     initializeSampleData()
     const loadedPosts = getAllPosts()
     setPosts(loadedPosts)
-    // Check if AI is configured
     setAiEnabled(isAiConfigured())
-  }, [])
+    getLinkedInStatus().then(setLinkedInStatus)
+    checkOAuthRedirect()
+  }, [checkOAuthRedirect])
 
   const handleSaveDraft = (content, image) => {
     const draft = createDraft(content, image)
@@ -70,6 +89,27 @@ export default function App() {
     setShowEditModal(true)
   }
 
+  const handlePublishPost = async (post) => {
+    if (!linkedInStatus.connected) {
+      alert('Please connect your LinkedIn account first.')
+      return
+    }
+
+    if (!window.confirm('Publish this post to LinkedIn now?')) return
+
+    setPublishing(post.id)
+    try {
+      await publishToLinkedIn(post.content, post.image)
+      const updated = publishPost(post.id)
+      setPosts(posts.map((p) => (p.id === post.id ? updated : p)))
+      alert('Post published to LinkedIn!')
+    } catch (err) {
+      alert(`Failed to publish: ${err.message}`)
+    } finally {
+      setPublishing(null)
+    }
+  }
+
   const handleSettingsSave = () => {
     setAiEnabled(isAiConfigured())
   }
@@ -82,14 +122,20 @@ export default function App() {
             <h1>💼 LinkedIn Post Manager</h1>
             <p>Schedule and manage your LinkedIn posts</p>
           </div>
-          <button
-            className={`settings-button ${aiEnabled ? 'enabled' : ''}`}
-            onClick={() => setShowSettingsModal(true)}
-            title="Configure AI"
-          >
-            ⚙️
-            {aiEnabled && <span className="ai-indicator">✓</span>}
-          </button>
+          <div className="header-actions">
+            <LinkedInAuth
+              linkedInStatus={linkedInStatus}
+              onStatusChange={setLinkedInStatus}
+            />
+            <button
+              className={`settings-button ${aiEnabled ? 'enabled' : ''}`}
+              onClick={() => setShowSettingsModal(true)}
+              title="Configure AI"
+            >
+              ⚙️
+              {aiEnabled && <span className="ai-indicator">✓</span>}
+            </button>
+          </div>
         </div>
       </header>
 
@@ -109,6 +155,9 @@ export default function App() {
             onEdit={handleEditPost}
             onDelete={handleDeletePost}
             onSchedule={handleScheduleDraft}
+            onPublish={handlePublishPost}
+            linkedInConnected={linkedInStatus.connected}
+            publishingId={publishing}
           />
         </div>
       </div>

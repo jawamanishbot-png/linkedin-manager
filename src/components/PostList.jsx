@@ -2,7 +2,7 @@ import { useState } from 'react'
 import PostCard from './PostCard'
 import './PostList.css'
 
-export default function PostList({ posts, onEdit, onDelete, onSchedule }) {
+export default function PostList({ posts, onEdit, onDelete, onSchedule, onPublish, linkedInConnected, publishingId }) {
   const [filter, setFilter] = useState('all')
 
   const filteredPosts = posts.filter((post) => {
@@ -65,6 +65,9 @@ export default function PostList({ posts, onEdit, onDelete, onSchedule }) {
               onEdit={onEdit}
               onDelete={onDelete}
               onSchedule={onSchedule}
+              onPublish={onPublish}
+              linkedInConnected={linkedInConnected}
+              isPublishing={publishingId === post.id}
             />
           ))}
         </div>

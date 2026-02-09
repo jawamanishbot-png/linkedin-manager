@@ -1,0 +1,95 @@
+.linkedin-auth {
+  display: flex;
+  align-items: center;
+}
+
+.linkedin-auth.connected {
+  gap: 12px;
+}
+
+.connect-button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 18px;
+  background-color: rgba(255, 255, 255, 0.15);
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 8px;
+  color: white;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.connect-button:hover {
+  background-color: rgba(255, 255, 255, 0.25);
+  border-color: white;
+  transform: scale(1.02);
+}
+
+.linkedin-icon {
+  flex-shrink: 0;
+}
+
+.linkedin-profile {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.profile-picture {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.5);
+}
+
+.profile-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.connection-status {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  opacity: 0.8;
+  color: #86efac;
+}
+
+.profile-name {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: white;
+}
+
+.disconnect-button {
+  padding: 6px 14px;
+  background-color: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 6px;
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.disconnect-button:hover {
+  background-color: rgba(220, 38, 38, 0.3);
+  border-color: rgba(220, 38, 38, 0.5);
+  color: white;
+}
+
+@media (max-width: 768px) {
+  .linkedin-auth.connected {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .connect-button {
+    font-size: 0.85rem;
+    padding: 8px 14px;
+  }
+}
