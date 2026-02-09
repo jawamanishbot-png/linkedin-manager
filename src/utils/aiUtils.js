@@ -141,6 +141,17 @@ export async function generatePostIdeas(topic) {
   return await callClaudeApi(prompt)
 }
 
+// Generate post from a viral framework
+export async function generateFromFramework(topic, systemPrompt) {
+  const prompt = `Generate a LinkedIn post about the following topic/context:
+
+"${topic}"
+
+Follow the structure and rules in your system instructions exactly. Return only the post content.`
+
+  return await callClaudeApi(prompt, systemPrompt)
+}
+
 // Generate first comment suggestion
 export async function generateFirstComment(postContent) {
   const prompt = `Generate an optimal first comment for this LinkedIn post. The comment should:

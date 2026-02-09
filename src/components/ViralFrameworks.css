@@ -1,0 +1,208 @@
+.frameworks-toggle-btn {
+  width: 100%;
+  padding: 12px 16px;
+  background: linear-gradient(135deg, #f8faff 0%, #f0f6ff 100%);
+  border: 2px dashed #0a66c2;
+  border-radius: 8px;
+  color: #0a66c2;
+  font-weight: 600;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: left;
+}
+
+.frameworks-toggle-btn:hover {
+  background: linear-gradient(135deg, #e9f2ff 0%, #dae8ff 100%);
+  border-color: #004182;
+  color: #004182;
+}
+
+.frameworks-panel {
+  background: linear-gradient(135deg, #f8faff 0%, #f0f6ff 100%);
+  border: 1px solid #0a66c2;
+  border-radius: 8px;
+  padding: 14px;
+}
+
+.frameworks-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.frameworks-header h4 {
+  margin: 0;
+  font-size: 0.95rem;
+  color: #0a66c2;
+}
+
+.frameworks-close {
+  background: none;
+  border: none;
+  font-size: 1rem;
+  color: #666;
+  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: 4px;
+  transition: all 0.15s ease;
+}
+
+.frameworks-close:hover {
+  background: rgba(0, 0, 0, 0.08);
+  color: #333;
+}
+
+.frameworks-error {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  background: #fee2e2;
+  border: 1px solid #fca5a5;
+  border-radius: 6px;
+  margin-bottom: 10px;
+  font-size: 0.82rem;
+  color: #dc2626;
+}
+
+.frameworks-error button {
+  background: none;
+  border: none;
+  color: #dc2626;
+  cursor: pointer;
+  font-size: 0.85rem;
+  padding: 0 4px;
+  flex-shrink: 0;
+}
+
+.frameworks-loading {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 16px 0;
+  color: #0a66c2;
+  font-size: 0.88rem;
+  justify-content: center;
+}
+
+.frameworks-spinner {
+  width: 18px;
+  height: 18px;
+  border: 2px solid #e0e8ff;
+  border-top-color: #0a66c2;
+  border-radius: 50%;
+  animation: frameworks-spin 0.8s linear infinite;
+  flex-shrink: 0;
+}
+
+@keyframes frameworks-spin {
+  to { transform: rotate(360deg); }
+}
+
+.frameworks-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.framework-chip {
+  padding: 6px 12px;
+  background: white;
+  border: 1px solid #d0d8e8;
+  border-radius: 20px;
+  font-size: 0.78rem;
+  color: #444;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+
+.framework-chip:hover {
+  background: #e9f2ff;
+  border-color: #0a66c2;
+  color: #0a66c2;
+}
+
+.framework-chip.active {
+  background: #0a66c2;
+  border-color: #0a66c2;
+  color: white;
+}
+
+.framework-detail {
+  margin-top: 4px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(10, 102, 194, 0.15);
+}
+
+.framework-description {
+  margin: 0 0 10px;
+  font-size: 0.82rem;
+  color: #555;
+  line-height: 1.4;
+}
+
+.framework-input-group {
+  display: flex;
+  gap: 6px;
+}
+
+.framework-input-group input {
+  flex: 1;
+  padding: 8px 12px;
+  border: 1px solid #d0d8e8;
+  border-radius: 6px;
+  font-size: 0.82rem;
+  background: white;
+  transition: border-color 0.15s ease;
+}
+
+.framework-input-group input:focus {
+  outline: none;
+  border-color: #0a66c2;
+  box-shadow: 0 0 0 2px rgba(10, 102, 194, 0.1);
+}
+
+.framework-input-group button {
+  padding: 8px 16px;
+  background: #0a66c2;
+  border: none;
+  border-radius: 6px;
+  color: white;
+  font-weight: 600;
+  font-size: 0.82rem;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s ease;
+}
+
+.framework-input-group button:hover:not(:disabled) {
+  background: #004182;
+}
+
+.framework-input-group button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+@media (max-width: 768px) {
+  .frameworks-panel {
+    padding: 12px;
+  }
+
+  .framework-input-group {
+    flex-direction: column;
+  }
+
+  .framework-input-group button {
+    width: 100%;
+  }
+
+  .framework-chip {
+    font-size: 0.74rem;
+    padding: 5px 10px;
+  }
+}

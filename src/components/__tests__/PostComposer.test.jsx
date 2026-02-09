@@ -3,7 +3,7 @@ import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import PostComposer from '../PostComposer'
 
-// Mock aiUtils to prevent import errors in AiAssistant
+// Mock aiUtils to prevent import errors in AiAssistant and ViralFrameworks
 vi.mock('../../utils/aiUtils', () => ({
   generatePost: vi.fn(),
   generateHashtags: vi.fn(),
@@ -11,6 +11,7 @@ vi.mock('../../utils/aiUtils', () => ({
   improvePost: vi.fn(),
   generatePostIdeas: vi.fn(),
   generateFirstComment: vi.fn(),
+  generateFromFramework: vi.fn(),
 }))
 
 // Mock alert
@@ -166,13 +167,15 @@ describe('PostComposer', () => {
     expect(screen.getByText(/Links in the first comment/)).toBeInTheDocument()
   })
 
-  it('does not render AI assistant when aiEnabled is false', () => {
+  it('does not render AI assistant or viral frameworks when aiEnabled is false', () => {
     renderComposer({ aiEnabled: false })
     expect(screen.queryByText(/AI Assistant/)).not.toBeInTheDocument()
+    expect(screen.queryByText(/Viral Post Frameworks/)).not.toBeInTheDocument()
   })
 
-  it('renders AI assistant toggle when aiEnabled is true', () => {
+  it('renders AI assistant and viral frameworks when aiEnabled is true', () => {
     renderComposer({ aiEnabled: true })
     expect(screen.getByText(/AI Assistant/)).toBeInTheDocument()
+    expect(screen.getByText(/Viral Post Frameworks/)).toBeInTheDocument()
   })
 })

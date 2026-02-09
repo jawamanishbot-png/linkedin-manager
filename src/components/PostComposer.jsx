@@ -4,6 +4,7 @@ import ImageUpload from './ImageUpload'
 import FormattingToolbar from './FormattingToolbar'
 import HookTemplates from './HookTemplates'
 import AiAssistant from './AiAssistant'
+import ViralFrameworks from './ViralFrameworks'
 import './PostComposer.css'
 
 export default function PostComposer({ onSaveDraft, onSchedule, onContentChange, onImageChange, onFirstCommentChange, aiEnabled }) {
@@ -149,6 +150,10 @@ export default function PostComposer({ onSaveDraft, onSchedule, onContentChange,
         onInsertHook={handleInsertHook}
         onInsertEnding={handleInsertEnding}
       />
+
+      {aiEnabled && (
+        <ViralFrameworks onContentUpdate={handleAiContentUpdate} />
+      )}
 
       {aiEnabled && (
         <AiAssistant
