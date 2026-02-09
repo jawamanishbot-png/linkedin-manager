@@ -2,6 +2,8 @@ import { useState, useEffect, useCallback } from 'react'
 import PostComposer from './components/PostComposer'
 import PostList from './components/PostList'
 import PostCalendar from './components/PostCalendar'
+import PostPreview from './components/PostPreview'
+import ContentScore from './components/ContentScore'
 import EditPostModal from './components/EditPostModal'
 import SettingsModal from './components/SettingsModal'
 import LinkedInAuth from './components/LinkedInAuth'
@@ -26,6 +28,9 @@ export default function App() {
   const [aiEnabled, setAiEnabled] = useState(false)
   const [linkedInStatus, setLinkedInStatus] = useState({ connected: false })
   const [publishing, setPublishing] = useState(null)
+  const [composerContent, setComposerContent] = useState('')
+  const [composerImage, setComposerImage] = useState(null)
+  const [composerFirstComment, setComposerFirstComment] = useState('')
 
   // Check for OAuth redirect params in URL
   const checkOAuthRedirect = useCallback(() => {
@@ -51,15 +56,21 @@ export default function App() {
     checkOAuthRedirect()
   }, [checkOAuthRedirect])
 
-  const handleSaveDraft = (content, image) => {
-    const draft = createDraft(content, image)
+  const handleSaveDraft = (content, image, firstComment) => {
+    const draft = createDraft(content, image, firstComment)
     setPosts([...posts, draft])
+    setComposerContent('')
+    setComposerImage(null)
+    setComposerFirstComment('')
     alert('Draft saved!')
   }
 
-  const handleSchedulePost = (content, image, scheduledTime) => {
-    const post = createPost(content, image, scheduledTime)
+  const handleSchedulePost = (content, image, scheduledTime, firstComment) => {
+    const post = createPost(content, image, scheduledTime, firstComment)
     setPosts([...posts, post])
+    setComposerContent('')
+    setComposerImage(null)
+    setComposerFirstComment('')
     alert('Post scheduled!')
   }
 
@@ -144,10 +155,15 @@ export default function App() {
           <PostComposer
             onSaveDraft={handleSaveDraft}
             onSchedule={handleSchedulePost}
+            onContentChange={setComposerContent}
+            onImageChange={setComposerImage}
+            onFirstCommentChange={setComposerFirstComment}
           />
         </div>
 
         <div className="right-panel">
+          <PostPreview content={composerContent} image={composerImage} />
+          <ContentScore content={composerContent} firstComment={composerFirstComment} />
           <PostCalendar posts={posts} onSelectDate={() => {}} />
 
           <PostList

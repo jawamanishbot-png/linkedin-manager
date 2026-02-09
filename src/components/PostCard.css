@@ -68,6 +68,22 @@
   margin-top: 8px;
 }
 
+.first-comment-preview {
+  margin-top: 8px;
+  padding: 8px 10px;
+  background: #f8f9fa;
+  border-left: 3px solid #0a66c2;
+  border-radius: 0 4px 4px 0;
+  font-size: 0.82rem;
+  color: #555;
+  line-height: 1.4;
+}
+
+.first-comment-label {
+  font-weight: 600;
+  color: #0a66c2;
+}
+
 .post-meta {
   margin-bottom: 12px;
   padding-top: 8px;

@@ -1,0 +1,62 @@
+.content-score {
+  background: white;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 16px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.score-header h3 {
+  margin: 0 0 12px 0;
+  font-size: 1rem;
+  color: #333;
+}
+
+.score-display {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 14px;
+}
+
+.score-ring {
+  display: block;
+}
+
+.score-value {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.score-grade {
+  font-size: 1.3rem;
+  font-weight: 800;
+}
+
+.score-number {
+  font-size: 0.7rem;
+  color: #999;
+}
+
+.score-tips {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.tip-item {
+  display: flex;
+  gap: 8px;
+  font-size: 0.8rem;
+  color: #555;
+  line-height: 1.4;
+}
+
+.tip-bullet {
+  color: #0a66c2;
+  flex-shrink: 0;
+  font-weight: bold;
+}

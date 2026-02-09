@@ -37,12 +37,13 @@ function saveAllPosts(posts) {
 }
 
 // Create new post
-export function createPost(content, image, scheduledTime) {
+export function createPost(content, image, scheduledTime, firstComment) {
   const posts = getAllPosts()
   const newPost = {
     id: Date.now().toString(),
     content,
     image: image || null,
+    firstComment: firstComment || null,
     scheduledTime,
     status: 'scheduled',
     createdAt: new Date().toISOString(),
@@ -53,12 +54,13 @@ export function createPost(content, image, scheduledTime) {
 }
 
 // Create draft (same as post but status = 'draft')
-export function createDraft(content, image) {
+export function createDraft(content, image, firstComment) {
   const posts = getAllPosts()
   const newPost = {
     id: Date.now().toString(),
     content,
     image: image || null,
+    firstComment: firstComment || null,
     scheduledTime: null,
     status: 'draft',
     createdAt: new Date().toISOString(),

@@ -25,6 +25,11 @@ export default function PostCard({ post, onEdit, onDelete, onSchedule, onPublish
         {post.image && (
           <img src={post.image} alt="Post" className="post-image" />
         )}
+        {post.firstComment && (
+          <div className="first-comment-preview">
+            <span className="first-comment-label">1st comment:</span> {post.firstComment}
+          </div>
+        )}
       </div>
 
       <div className="post-meta">

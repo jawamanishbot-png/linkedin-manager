@@ -1,14 +1,18 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { parseDateTime } from '../utils/dateUtils'
 import ImageUpload from './ImageUpload'
+import FormattingToolbar from './FormattingToolbar'
+import HookTemplates from './HookTemplates'
 import './PostComposer.css'
 
-export default function PostComposer({ onSaveDraft, onSchedule }) {
+export default function PostComposer({ onSaveDraft, onSchedule, onContentChange, onImageChange, onFirstCommentChange }) {
   const [content, setContent] = useState('')
   const [image, setImage] = useState(null)
   const [scheduleDate, setScheduleDate] = useState('')
   const [scheduleTime, setScheduleTime] = useState('09:00')
   const [charCount, setCharCount] = useState(0)
+  const [firstComment, setFirstComment] = useState('')
+  const textareaRef = useRef(null)
 
   const MAX_CHARS = 3000
 
@@ -17,15 +21,44 @@ export default function PostComposer({ onSaveDraft, onSchedule }) {
     if (text.length <= MAX_CHARS) {
       setContent(text)
       setCharCount(text.length)
+      onContentChange?.(text)
+    }
+  }
+
+  const handleTextChange = (newText) => {
+    if (newText.length <= MAX_CHARS) {
+      setContent(newText)
+      setCharCount(newText.length)
+      onContentChange?.(newText)
     }
   }
 
   const handleImageSelect = (base64) => {
     setImage(base64)
+    onImageChange?.(base64)
   }
 
   const handleRemoveImage = () => {
     setImage(null)
+    onImageChange?.(null)
+  }
+
+  const handleInsertHook = (hook) => {
+    const newContent = content ? `${hook}\n\n${content}` : hook
+    if (newContent.length <= MAX_CHARS) {
+      setContent(newContent)
+      setCharCount(newContent.length)
+      onContentChange?.(newContent)
+    }
+  }
+
+  const handleInsertEnding = (ending) => {
+    const newContent = content ? `${content}\n\n${ending}` : ending
+    if (newContent.length <= MAX_CHARS) {
+      setContent(newContent)
+      setCharCount(newContent.length)
+      onContentChange?.(newContent)
+    }
   }
 
   const handleSaveDraft = () => {
@@ -33,7 +66,7 @@ export default function PostComposer({ onSaveDraft, onSchedule }) {
       alert('Please write something first!')
       return
     }
-    onSaveDraft(content, image)
+    onSaveDraft(content, image, firstComment)
     resetForm()
   }
 
@@ -64,7 +97,7 @@ export default function PostComposer({ onSaveDraft, onSchedule }) {
       return
     }
 
-    onSchedule(content, image, scheduledTime)
+    onSchedule(content, image, scheduledTime, firstComment)
     resetForm()
   }
 
@@ -74,14 +107,21 @@ export default function PostComposer({ onSaveDraft, onSchedule }) {
     setScheduleDate('')
     setScheduleTime('09:00')
     setCharCount(0)
+    setFirstComment('')
+    onContentChange?.('')
+    onImageChange?.(null)
+    onFirstCommentChange?.('')
   }
 
   return (
     <div className="post-composer">
       <h2>📝 Compose New Post</h2>
 
+      <FormattingToolbar textareaRef={textareaRef} onTextChange={handleTextChange} />
+
       <textarea
-        className="post-textarea"
+        ref={textareaRef}
+        className="post-textarea has-toolbar"
         placeholder="What's on your mind? Share your thoughts with your LinkedIn network..."
         value={content}
         onChange={handleContentChange}
@@ -91,11 +131,29 @@ export default function PostComposer({ onSaveDraft, onSchedule }) {
         {charCount} / {MAX_CHARS} characters
       </div>
 
+      <HookTemplates
+        onInsertHook={handleInsertHook}
+        onInsertEnding={handleInsertEnding}
+      />
+
       <ImageUpload
         onImageSelect={handleImageSelect}
         currentImage={image}
         onRemove={handleRemoveImage}
       />
+
+      <div className="first-comment-section">
+        <h3>💬 First Comment (optional)</h3>
+        <p className="first-comment-hint">
+          Links in the first comment get better reach than links in the post body.
+        </p>
+        <textarea
+          className="first-comment-textarea"
+          placeholder="Add a first comment with your link, hashtags, or CTA..."
+          value={firstComment}
+          onChange={(e) => { setFirstComment(e.target.value); onFirstCommentChange?.(e.target.value) }}
+        />
+      </div>
 
       <div className="schedule-section">
         <h3>📅 Schedule Post</h3>
