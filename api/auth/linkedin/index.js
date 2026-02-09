@@ -26,7 +26,7 @@ export default function handler(req, res) {
     client_id: clientId,
     redirect_uri: redirectUri,
     state,
-    scope: 'openid profile email w_member_social',
+    scope: 'openid profile email w_member_social r_member_social',
   })
 
   res.redirect(`https://www.linkedin.com/oauth/v2/authorization?${params}`)

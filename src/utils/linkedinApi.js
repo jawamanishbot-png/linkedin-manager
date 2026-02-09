@@ -37,6 +37,27 @@ export async function disconnectLinkedIn() {
   }
 }
 
+// Fetch user's past LinkedIn posts
+export async function getLinkedInPosts(start = 0, count = 20) {
+  try {
+    const response = await fetch(
+      `${API_BASE}/api/linkedin/posts?start=${start}&count=${count}`,
+      { credentials: 'include' }
+    )
+
+    const data = await response.json()
+
+    if (!response.ok) {
+      throw new Error(data.error || 'Failed to fetch posts')
+    }
+
+    return data
+  } catch (error) {
+    console.error('Failed to fetch LinkedIn posts:', error)
+    throw error
+  }
+}
+
 // Publish a post to LinkedIn
 export async function publishToLinkedIn(content, image) {
   try {

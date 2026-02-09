@@ -7,6 +7,7 @@ import ContentScore from './components/ContentScore'
 import EditPostModal from './components/EditPostModal'
 import SettingsModal from './components/SettingsModal'
 import LinkedInAuth from './components/LinkedInAuth'
+import PostHistory from './components/PostHistory'
 import { isAiConfigured } from './utils/aiUtils'
 import { getLinkedInStatus, publishToLinkedIn } from './utils/linkedinApi'
 import {
@@ -166,6 +167,8 @@ export default function App() {
           <PostPreview content={composerContent} image={composerImage} />
           <ContentScore content={composerContent} firstComment={composerFirstComment} />
           <PostCalendar posts={posts} onSelectDate={() => {}} />
+
+          <PostHistory linkedInConnected={linkedInStatus.connected} />
 
           <PostList
             posts={posts}
