@@ -1,0 +1,238 @@
+.ai-toggle-btn {
+  padding: 8px 14px;
+  background: linear-gradient(135deg, #f0f6ff 0%, #e9f2ff 100%);
+  border: 1px dashed #0a66c2;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  color: #0a66c2;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  width: 100%;
+  text-align: center;
+}
+
+.ai-toggle-btn:hover {
+  background: #e0ecff;
+  border-style: solid;
+}
+
+.ai-assistant {
+  background: linear-gradient(135deg, #f8faff 0%, #f0f6ff 100%);
+  border: 1px solid #c8d8f0;
+  border-radius: 8px;
+  padding: 14px;
+}
+
+.ai-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.ai-header h4 {
+  margin: 0;
+  font-size: 0.9rem;
+  color: #0a66c2;
+}
+
+.ai-close {
+  background: none;
+  border: none;
+  font-size: 1.1rem;
+  color: #999;
+  cursor: pointer;
+  padding: 2px 6px;
+}
+
+.ai-close:hover {
+  color: #333;
+}
+
+.ai-error {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  background: #fef2f2;
+  border: 1px solid #fca5a5;
+  border-radius: 6px;
+  color: #dc2626;
+  font-size: 0.82rem;
+  margin-bottom: 10px;
+}
+
+.ai-error button {
+  background: none;
+  border: none;
+  color: #dc2626;
+  cursor: pointer;
+  font-size: 0.9rem;
+  flex-shrink: 0;
+}
+
+.ai-loading {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  background: white;
+  border: 1px solid #e0e8ff;
+  border-radius: 6px;
+  font-size: 0.82rem;
+  color: #0a66c2;
+  margin-bottom: 10px;
+}
+
+.ai-spinner {
+  width: 14px;
+  height: 14px;
+  border: 2px solid #e0e8ff;
+  border-top-color: #0a66c2;
+  border-radius: 50%;
+  animation: ai-spin 0.8s linear infinite;
+  flex-shrink: 0;
+}
+
+@keyframes ai-spin {
+  to { transform: rotate(360deg); }
+}
+
+.ai-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.ai-action-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.ai-action-btn {
+  padding: 8px 14px;
+  background: white;
+  border: 1px solid #d0d8e8;
+  border-radius: 6px;
+  font-size: 0.82rem;
+  color: #333;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  text-align: left;
+}
+
+.ai-action-btn:hover:not(:disabled) {
+  background: #e9f2ff;
+  border-color: #0a66c2;
+  color: #0a66c2;
+}
+
+.ai-action-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.ai-input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px;
+  background: white;
+  border: 1px solid #e0e8ff;
+  border-radius: 6px;
+}
+
+.ai-input-group input {
+  padding: 8px 10px;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+  font-size: 0.85rem;
+  font-family: inherit;
+}
+
+.ai-input-group input:focus {
+  outline: none;
+  border-color: #0a66c2;
+  box-shadow: 0 0 0 2px rgba(10, 102, 194, 0.1);
+}
+
+.ai-input-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.ai-input-actions button {
+  padding: 6px 14px;
+  background: #0a66c2;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.ai-input-actions button:hover:not(:disabled) {
+  background: #0949a4;
+}
+
+.ai-input-actions button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.ai-tone-menu {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 8px;
+  background: white;
+  border: 1px solid #e0e8ff;
+  border-radius: 6px;
+}
+
+.ai-tone-btn {
+  padding: 5px 12px;
+  border: 1px solid #d0d0d0;
+  border-radius: 20px;
+  font-size: 0.78rem;
+  cursor: pointer;
+  background: white;
+  color: #666;
+  transition: all 0.15s ease;
+}
+
+.ai-tone-btn:hover:not(:disabled) {
+  background: #0a66c2;
+  color: white;
+  border-color: #0a66c2;
+}
+
+.ai-tone-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.ai-ideas {
+  padding: 10px;
+  background: white;
+  border: 1px solid #e0e8ff;
+  border-radius: 6px;
+}
+
+.ai-ideas h5 {
+  margin: 0 0 8px 0;
+  font-size: 0.85rem;
+  color: #333;
+}
+
+.ai-ideas-text {
+  margin: 0;
+  font-size: 0.82rem;
+  color: #555;
+  white-space: pre-wrap;
+  font-family: inherit;
+  line-height: 1.5;
+}

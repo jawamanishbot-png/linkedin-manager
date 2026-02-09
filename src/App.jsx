@@ -158,6 +158,7 @@ export default function App() {
             onContentChange={setComposerContent}
             onImageChange={setComposerImage}
             onFirstCommentChange={setComposerFirstComment}
+            aiEnabled={aiEnabled}
           />
         </div>
 

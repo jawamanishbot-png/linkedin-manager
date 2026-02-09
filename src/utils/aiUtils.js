@@ -39,7 +39,7 @@ export function isAiConfigured() {
   return config.enabled && config.apiKey.length > 0
 }
 
-// Call Claude API
+// Call Claude API via backend proxy (avoids CORS)
 export async function callClaudeApi(prompt, systemPrompt = '') {
   const config = getAiConfig()
 
@@ -48,34 +48,26 @@ export async function callClaudeApi(prompt, systemPrompt = '') {
   }
 
   try {
-    const response = await fetch('https://api.anthropic.com/v1/messages', {
+    const response = await fetch('/api/ai/generate', {
       method: 'POST',
-      headers: {
-        'x-api-key': config.apiKey,
-        'anthropic-version': '2023-06-01',
-        'content-type': 'application/json',
-      },
+      headers: { 'content-type': 'application/json' },
       body: JSON.stringify({
+        prompt,
+        systemPrompt,
+        apiKey: config.apiKey,
         model: config.model,
-        max_tokens: config.maxTokens,
+        maxTokens: config.maxTokens,
         temperature: config.temperature,
-        system: systemPrompt,
-        messages: [
-          {
-            role: 'user',
-            content: prompt,
-          },
-        ],
       }),
     })
 
     if (!response.ok) {
       const error = await response.json()
-      throw new Error(error.error?.message || 'API request failed')
+      throw new Error(error.error || 'AI request failed')
     }
 
     const data = await response.json()
-    return data.content[0].text
+    return data.text
   } catch (error) {
     console.error('AI API Error:', error)
     throw error
@@ -145,6 +137,20 @@ export async function generatePostIdeas(topic) {
   5. [Idea 5]
   
   Each should be 1-2 sentences describing the post concept.`
+
+  return await callClaudeApi(prompt)
+}
+
+// Generate first comment suggestion
+export async function generateFirstComment(postContent) {
+  const prompt = `Generate an optimal first comment for this LinkedIn post. The comment should:
+- Add value (a relevant insight, additional context, or thought-provoking question)
+- Encourage engagement
+- Be 1-3 sentences
+
+Post: "${postContent}"
+
+Just return the comment text, no extra text.`
 
   return await callClaudeApi(prompt)
 }

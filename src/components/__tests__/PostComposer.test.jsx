@@ -3,6 +3,16 @@ import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import PostComposer from '../PostComposer'
 
+// Mock aiUtils to prevent import errors in AiAssistant
+vi.mock('../../utils/aiUtils', () => ({
+  generatePost: vi.fn(),
+  generateHashtags: vi.fn(),
+  rewritePost: vi.fn(),
+  improvePost: vi.fn(),
+  generatePostIdeas: vi.fn(),
+  generateFirstComment: vi.fn(),
+}))
+
 // Mock alert
 globalThis.alert = vi.fn()
 
@@ -13,6 +23,7 @@ describe('PostComposer', () => {
     onContentChange: vi.fn(),
     onImageChange: vi.fn(),
     onFirstCommentChange: vi.fn(),
+    aiEnabled: false,
   }
 
   const renderComposer = (overrides = {}) => {
@@ -153,5 +164,15 @@ describe('PostComposer', () => {
   it('shows first comment section with hint text', () => {
     renderComposer()
     expect(screen.getByText(/Links in the first comment/)).toBeInTheDocument()
+  })
+
+  it('does not render AI assistant when aiEnabled is false', () => {
+    renderComposer({ aiEnabled: false })
+    expect(screen.queryByText(/AI Assistant/)).not.toBeInTheDocument()
+  })
+
+  it('renders AI assistant toggle when aiEnabled is true', () => {
+    renderComposer({ aiEnabled: true })
+    expect(screen.getByText(/AI Assistant/)).toBeInTheDocument()
   })
 })

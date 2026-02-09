@@ -3,9 +3,10 @@ import { parseDateTime } from '../utils/dateUtils'
 import ImageUpload from './ImageUpload'
 import FormattingToolbar from './FormattingToolbar'
 import HookTemplates from './HookTemplates'
+import AiAssistant from './AiAssistant'
 import './PostComposer.css'
 
-export default function PostComposer({ onSaveDraft, onSchedule, onContentChange, onImageChange, onFirstCommentChange }) {
+export default function PostComposer({ onSaveDraft, onSchedule, onContentChange, onImageChange, onFirstCommentChange, aiEnabled }) {
   const [content, setContent] = useState('')
   const [image, setImage] = useState(null)
   const [scheduleDate, setScheduleDate] = useState('')
@@ -59,6 +60,19 @@ export default function PostComposer({ onSaveDraft, onSchedule, onContentChange,
       setCharCount(newContent.length)
       onContentChange?.(newContent)
     }
+  }
+
+  const handleAiContentUpdate = (newContent) => {
+    if (newContent.length <= MAX_CHARS) {
+      setContent(newContent)
+      setCharCount(newContent.length)
+      onContentChange?.(newContent)
+    }
+  }
+
+  const handleAiFirstCommentUpdate = (newComment) => {
+    setFirstComment(newComment)
+    onFirstCommentChange?.(newComment)
   }
 
   const handleSaveDraft = () => {
@@ -135,6 +149,14 @@ export default function PostComposer({ onSaveDraft, onSchedule, onContentChange,
         onInsertHook={handleInsertHook}
         onInsertEnding={handleInsertEnding}
       />
+
+      {aiEnabled && (
+        <AiAssistant
+          content={content}
+          onContentUpdate={handleAiContentUpdate}
+          onFirstCommentUpdate={handleAiFirstCommentUpdate}
+        />
+      )}
 
       <ImageUpload
         onImageSelect={handleImageSelect}
