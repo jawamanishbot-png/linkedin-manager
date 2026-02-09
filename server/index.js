@@ -1,8 +1,12 @@
 import express from 'express'
-import session from 'express-session'
 import cors from 'cors'
 import crypto from 'crypto'
 import 'dotenv/config'
+import {
+  getSession,
+  setSessionCookie,
+  clearSessionCookie,
+} from '../api/_lib/session.js'
 
 const app = express()
 const PORT = process.env.PORT || 3001
@@ -17,19 +21,6 @@ const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:5173'
 // Middleware
 app.use(cors({ origin: FRONTEND_URL, credentials: true }))
 app.use(express.json({ limit: '10mb' }))
-app.use(
-  session({
-    secret: process.env.SESSION_SECRET || crypto.randomBytes(32).toString('hex'),
-    resave: false,
-    saveUninitialized: false,
-    cookie: {
-      secure: process.env.NODE_ENV === 'production',
-      httpOnly: true,
-      sameSite: 'lax',
-      maxAge: 24 * 60 * 60 * 1000, // 24 hours
-    },
-  })
-)
 
 // Health check
 app.get('/api/health', (_req, res) => {
@@ -47,7 +38,9 @@ app.get('/api/auth/linkedin', (req, res) => {
   }
 
   const state = crypto.randomUUID()
-  req.session.oauthState = state
+
+  // Store state in encrypted cookie
+  setSessionCookie(res, { oauthState: state, expiresAt: Date.now() + 10 * 60 * 1000 })
 
   const params = new URLSearchParams({
     response_type: 'code',
@@ -68,12 +61,13 @@ app.get('/api/auth/linkedin/callback', async (req, res) => {
     return res.redirect(`${FRONTEND_URL}?linkedin_error=${encodeURIComponent(error)}`)
   }
 
-  if (!state || state !== req.session.oauthState) {
+  const session = getSession(req)
+  if (!session || !session.oauthState || session.oauthState !== state) {
     return res.redirect(`${FRONTEND_URL}?linkedin_error=state_mismatch`)
   }
 
   try {
-    // Exchange authorization code for access token
+    // Exchange code for access token
     const tokenResponse = await fetch(
       'https://www.linkedin.com/oauth/v2/accessToken',
       {
@@ -96,12 +90,10 @@ app.get('/api/auth/linkedin/callback', async (req, res) => {
       return res.redirect(`${FRONTEND_URL}?linkedin_error=token_exchange_failed`)
     }
 
-    // Fetch user profile using OpenID userinfo
+    // Fetch user profile
     const profileResponse = await fetch(
       'https://api.linkedin.com/v2/userinfo',
-      {
-        headers: { Authorization: `Bearer ${tokenData.access_token}` },
-      }
+      { headers: { Authorization: `Bearer ${tokenData.access_token}` } }
     )
 
     const profile = await profileResponse.json()
@@ -111,8 +103,8 @@ app.get('/api/auth/linkedin/callback', async (req, res) => {
       return res.redirect(`${FRONTEND_URL}?linkedin_error=profile_fetch_failed`)
     }
 
-    // Store credentials in session
-    req.session.linkedin = {
+    // Store in encrypted cookie
+    setSessionCookie(res, {
       accessToken: tokenData.access_token,
       expiresAt: Date.now() + tokenData.expires_in * 1000,
       profile: {
@@ -121,9 +113,8 @@ app.get('/api/auth/linkedin/callback', async (req, res) => {
         email: profile.email,
         picture: profile.picture,
       },
-    }
+    })
 
-    delete req.session.oauthState
     res.redirect(`${FRONTEND_URL}?linkedin_connected=true`)
   } catch (err) {
     console.error('OAuth callback error:', err)
@@ -133,38 +124,30 @@ app.get('/api/auth/linkedin/callback', async (req, res) => {
 
 // 3. Check authentication status
 app.get('/api/auth/linkedin/status', (req, res) => {
-  const linkedin = req.session.linkedin
-  if (linkedin && linkedin.expiresAt > Date.now()) {
-    res.json({ connected: true, profile: linkedin.profile })
+  const session = getSession(req)
+  if (session && session.accessToken && session.expiresAt > Date.now()) {
+    res.json({ connected: true, profile: session.profile })
   } else {
-    if (linkedin) delete req.session.linkedin
     res.json({ connected: false })
   }
 })
 
 // 4. Disconnect LinkedIn
-app.post('/api/auth/linkedin/disconnect', (req, res) => {
-  delete req.session.linkedin
+app.post('/api/auth/linkedin/disconnect', (_req, res) => {
+  clearSessionCookie(res)
   res.json({ success: true })
 })
 
-// --- Auth middleware for protected routes ---
+// --- Publish Route ---
 
-function requireLinkedInAuth(req, res, next) {
-  const linkedin = req.session.linkedin
-  if (!linkedin || linkedin.expiresAt <= Date.now()) {
-    if (linkedin) delete req.session.linkedin
+app.post('/api/linkedin/publish', async (req, res) => {
+  const session = getSession(req)
+  if (!session || !session.accessToken || session.expiresAt <= Date.now()) {
     return res.status(401).json({ error: 'Not authenticated with LinkedIn. Please connect first.' })
   }
-  next()
-}
 
-// --- Publish Routes ---
-
-// 5. Publish a post to LinkedIn
-app.post('/api/linkedin/publish', requireLinkedInAuth, async (req, res) => {
   const { content, image } = req.body
-  const { accessToken, profile } = req.session.linkedin
+  const { accessToken, profile } = session
   const authorUrn = `urn:li:person:${profile.id}`
 
   if (!content || content.trim().length === 0) {
@@ -174,12 +157,10 @@ app.post('/api/linkedin/publish', requireLinkedInAuth, async (req, res) => {
   try {
     let mediaAsset = null
 
-    // Upload image if provided
     if (image) {
       mediaAsset = await uploadImage(accessToken, authorUrn, image)
     }
 
-    // Build the UGC post payload
     const postPayload = {
       author: authorUrn,
       lifecycleState: 'PUBLISHED',
@@ -188,12 +169,7 @@ app.post('/api/linkedin/publish', requireLinkedInAuth, async (req, res) => {
           shareCommentary: { text: content },
           shareMediaCategory: mediaAsset ? 'IMAGE' : 'NONE',
           ...(mediaAsset && {
-            media: [
-              {
-                status: 'READY',
-                media: mediaAsset,
-              },
-            ],
+            media: [{ status: 'READY', media: mediaAsset }],
           }),
         },
       },
@@ -218,9 +194,7 @@ app.post('/api/linkedin/publish', requireLinkedInAuth, async (req, res) => {
     if (!publishResponse.ok) {
       const errorData = await publishResponse.json().catch(() => ({}))
       console.error('LinkedIn publish error:', errorData)
-      throw new Error(
-        errorData.message || `LinkedIn API error: ${publishResponse.status}`
-      )
+      throw new Error(errorData.message || `LinkedIn API error: ${publishResponse.status}`)
     }
 
     const postId = publishResponse.headers.get('x-restli-id')
@@ -234,7 +208,6 @@ app.post('/api/linkedin/publish', requireLinkedInAuth, async (req, res) => {
 // --- Image Upload Helper ---
 
 async function uploadImage(accessToken, ownerUrn, base64Image) {
-  // Step 1: Register the upload
   const registerResponse = await fetch(
     'https://api.linkedin.com/v2/assets?action=registerUpload',
     {
@@ -270,7 +243,6 @@ async function uploadImage(accessToken, ownerUrn, base64Image) {
     ].uploadUrl
   const asset = registerData.value.asset
 
-  // Step 2: Upload the image binary
   const base64Data = base64Image.replace(/^data:image\/\w+;base64,/, '')
   const imageBuffer = Buffer.from(base64Data, 'base64')
 
