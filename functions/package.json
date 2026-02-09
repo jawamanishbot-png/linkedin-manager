@@ -1,0 +1,13 @@
+{
+  "name": "linkedin-manager-functions",
+  "type": "module",
+  "engines": {
+    "node": "22"
+  },
+  "main": "index.js",
+  "dependencies": {
+    "express": "^4.21.2",
+    "firebase-admin": "^13.0.0",
+    "firebase-functions": "^6.3.0"
+  }
+}

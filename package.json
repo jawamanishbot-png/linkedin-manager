@@ -9,7 +9,8 @@
     "dev:all": "npm run server & npm run dev",
     "build": "vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "deploy": "npm run build && firebase deploy"
   },
   "dependencies": {
     "cors": "^2.8.5",

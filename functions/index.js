@@ -1,51 +1,40 @@
+import { onRequest } from 'firebase-functions/v2/https'
+import { defineString } from 'firebase-functions/params'
 import express from 'express'
-import cors from 'cors'
 import crypto from 'crypto'
-import 'dotenv/config'
 import {
   getSession,
   setSessionCookie,
   clearSessionCookie,
-} from '../functions/lib/session.js'
+  getOrigin,
+} from './lib/session.js'
+
+const linkedinClientId = defineString('LINKEDIN_CLIENT_ID')
+const linkedinClientSecret = defineString('LINKEDIN_CLIENT_SECRET')
+const linkedinRedirectUri = defineString('LINKEDIN_REDIRECT_URI', { default: '' })
 
 const app = express()
-const PORT = process.env.PORT || 3001
-
-const LINKEDIN_CLIENT_ID = process.env.LINKEDIN_CLIENT_ID
-const LINKEDIN_CLIENT_SECRET = process.env.LINKEDIN_CLIENT_SECRET
-const LINKEDIN_REDIRECT_URI =
-  process.env.LINKEDIN_REDIRECT_URI ||
-  `http://localhost:${PORT}/api/auth/linkedin/callback`
-const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:5173'
-
-// Middleware
-app.use(cors({ origin: FRONTEND_URL, credentials: true }))
 app.use(express.json({ limit: '10mb' }))
-
-// Health check
-app.get('/api/health', (_req, res) => {
-  res.json({ status: 'ok' })
-})
 
 // --- OAuth Routes ---
 
 // 1. Initiate LinkedIn OAuth
 app.get('/api/auth/linkedin', (req, res) => {
-  if (!LINKEDIN_CLIENT_ID || !LINKEDIN_CLIENT_SECRET) {
-    return res.status(500).json({
-      error: 'LinkedIn credentials not configured. Set LINKEDIN_CLIENT_ID and LINKEDIN_CLIENT_SECRET.',
-    })
+  const clientId = linkedinClientId.value()
+  if (!clientId) {
+    return res.status(500).json({ error: 'LINKEDIN_CLIENT_ID not configured' })
   }
 
-  const state = crypto.randomUUID()
+  const origin = getOrigin(req)
+  const redirectUri = linkedinRedirectUri.value() || `${origin}/api/auth/linkedin/callback`
 
-  // Store state in encrypted cookie
+  const state = crypto.randomUUID()
   setSessionCookie(res, { oauthState: state, expiresAt: Date.now() + 10 * 60 * 1000 })
 
   const params = new URLSearchParams({
     response_type: 'code',
-    client_id: LINKEDIN_CLIENT_ID,
-    redirect_uri: LINKEDIN_REDIRECT_URI,
+    client_id: clientId,
+    redirect_uri: redirectUri,
     state,
     scope: 'openid profile email w_member_social',
   })
@@ -55,19 +44,22 @@ app.get('/api/auth/linkedin', (req, res) => {
 
 // 2. OAuth callback
 app.get('/api/auth/linkedin/callback', async (req, res) => {
+  const origin = getOrigin(req)
+  const frontendUrl = origin
   const { code, state, error } = req.query
 
   if (error) {
-    return res.redirect(`${FRONTEND_URL}?linkedin_error=${encodeURIComponent(error)}`)
+    return res.redirect(`${frontendUrl}?linkedin_error=${encodeURIComponent(error)}`)
   }
 
   const session = getSession(req)
   if (!session || !session.oauthState || session.oauthState !== state) {
-    return res.redirect(`${FRONTEND_URL}?linkedin_error=state_mismatch`)
+    return res.redirect(`${frontendUrl}?linkedin_error=state_mismatch`)
   }
 
+  const redirectUri = linkedinRedirectUri.value() || `${origin}/api/auth/linkedin/callback`
+
   try {
-    // Exchange code for access token
     const tokenResponse = await fetch(
       'https://www.linkedin.com/oauth/v2/accessToken',
       {
@@ -76,9 +68,9 @@ app.get('/api/auth/linkedin/callback', async (req, res) => {
         body: new URLSearchParams({
           grant_type: 'authorization_code',
           code,
-          client_id: LINKEDIN_CLIENT_ID,
-          client_secret: LINKEDIN_CLIENT_SECRET,
-          redirect_uri: LINKEDIN_REDIRECT_URI,
+          client_id: linkedinClientId.value(),
+          client_secret: linkedinClientSecret.value(),
+          redirect_uri: redirectUri,
         }),
       }
     )
@@ -87,10 +79,9 @@ app.get('/api/auth/linkedin/callback', async (req, res) => {
 
     if (!tokenResponse.ok) {
       console.error('Token exchange failed:', tokenData)
-      return res.redirect(`${FRONTEND_URL}?linkedin_error=token_exchange_failed`)
+      return res.redirect(`${frontendUrl}?linkedin_error=token_exchange_failed`)
     }
 
-    // Fetch user profile
     const profileResponse = await fetch(
       'https://api.linkedin.com/v2/userinfo',
       { headers: { Authorization: `Bearer ${tokenData.access_token}` } }
@@ -100,10 +91,9 @@ app.get('/api/auth/linkedin/callback', async (req, res) => {
 
     if (!profileResponse.ok) {
       console.error('Profile fetch failed:', profile)
-      return res.redirect(`${FRONTEND_URL}?linkedin_error=profile_fetch_failed`)
+      return res.redirect(`${frontendUrl}?linkedin_error=profile_fetch_failed`)
     }
 
-    // Store in encrypted cookie
     setSessionCookie(res, {
       accessToken: tokenData.access_token,
       expiresAt: Date.now() + tokenData.expires_in * 1000,
@@ -115,10 +105,10 @@ app.get('/api/auth/linkedin/callback', async (req, res) => {
       },
     })
 
-    res.redirect(`${FRONTEND_URL}?linkedin_connected=true`)
+    res.redirect(`${frontendUrl}?linkedin_connected=true`)
   } catch (err) {
     console.error('OAuth callback error:', err)
-    res.redirect(`${FRONTEND_URL}?linkedin_error=server_error`)
+    res.redirect(`${frontendUrl}?linkedin_error=server_error`)
   }
 })
 
@@ -126,10 +116,9 @@ app.get('/api/auth/linkedin/callback', async (req, res) => {
 app.get('/api/auth/linkedin/status', (req, res) => {
   const session = getSession(req)
   if (session && session.accessToken && session.expiresAt > Date.now()) {
-    res.json({ connected: true, profile: session.profile })
-  } else {
-    res.json({ connected: false })
+    return res.json({ connected: true, profile: session.profile })
   }
+  res.json({ connected: false })
 })
 
 // 4. Disconnect LinkedIn
@@ -262,13 +251,5 @@ async function uploadImage(accessToken, ownerUrn, base64Image) {
   return asset
 }
 
-// Start server
-app.listen(PORT, () => {
-  console.log(`LinkedIn Manager API server running on http://localhost:${PORT}`)
-  if (!LINKEDIN_CLIENT_ID || !LINKEDIN_CLIENT_SECRET) {
-    console.warn(
-      'WARNING: LINKEDIN_CLIENT_ID and/or LINKEDIN_CLIENT_SECRET not set. OAuth will not work.'
-    )
-    console.warn('Copy .env.example to .env and fill in your credentials.')
-  }
-})
+// Export as Firebase Cloud Function
+export const api = onRequest(app)
