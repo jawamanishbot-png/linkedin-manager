@@ -6,7 +6,7 @@ import {
   getSession,
   setSessionCookie,
   clearSessionCookie,
-} from '../functions/lib/session.js'
+} from '../api/_lib/session.js'
 
 const app = express()
 const PORT = process.env.PORT || 3001

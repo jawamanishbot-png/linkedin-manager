@@ -1,12 +1,10 @@
 import crypto from 'crypto'
-import { defineString } from 'firebase-functions/params'
 
 const COOKIE_NAME = 'li_session'
-const sessionSecret = defineString('SESSION_SECRET')
 
 function getKey() {
-  const secret = sessionSecret.value()
-  if (!secret) throw new Error('SESSION_SECRET parameter is required')
+  const secret = process.env.SESSION_SECRET
+  if (!secret) throw new Error('SESSION_SECRET environment variable is required')
   return crypto.createHash('sha256').update(secret).digest()
 }
 
@@ -73,6 +71,7 @@ export function clearSessionCookie(res) {
   )
 }
 
+// Get the origin URL from the request (works on Vercel and locally)
 export function getOrigin(req) {
   const proto = req.headers['x-forwarded-proto'] || 'https'
   const host = req.headers['x-forwarded-host'] || req.headers.host

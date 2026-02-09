@@ -11,8 +11,7 @@
     "lint": "eslint .",
     "test": "vitest run",
     "test:watch": "vitest",
-    "preview": "vite preview",
-    "deploy": "npm run build && firebase deploy"
+    "preview": "vite preview"
   },
   "dependencies": {
     "cors": "^2.8.5",
