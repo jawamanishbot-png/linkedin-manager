@@ -266,6 +266,33 @@
   line-height: 1.5;
 }
 
+.status-badge.custom {
+  background-color: #f0f6ff;
+  color: #1e40af;
+  border: 1px solid #93c5fd;
+}
+
+.btn-link {
+  background: none;
+  border: none;
+  color: #0a66c2;
+  cursor: pointer;
+  padding: 8px 0;
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.btn-link:hover {
+  text-decoration: underline;
+}
+
+.reset-link {
+  margin-top: 8px;
+  color: #666;
+  font-weight: 500;
+}
+
 .modal-footer {
   display: flex;
   gap: 12px;

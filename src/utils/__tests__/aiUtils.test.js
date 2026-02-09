@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest'
-import { getAiConfig, saveAiConfig, isAiConfigured } from '../aiUtils'
+import { getAiConfig, saveAiConfig, isAiConfigured, hasCustomApiKey } from '../aiUtils'
 
 const localStorageMock = (() => {
   let store = {}
@@ -47,19 +47,27 @@ describe('aiUtils config functions', () => {
     expect(saveAiConfig({ apiKey: 'test', enabled: true })).toBe(true)
   })
 
-  it('isAiConfigured returns false when not enabled', () => {
-    saveAiConfig({ apiKey: 'sk-test', model: 'test', maxTokens: 1024, temperature: 0.7, enabled: false })
-    expect(isAiConfigured()).toBe(false)
-  })
-
-  it('isAiConfigured returns false when no API key', () => {
-    saveAiConfig({ apiKey: '', model: 'test', maxTokens: 1024, temperature: 0.7, enabled: true })
-    expect(isAiConfigured()).toBe(false)
-  })
-
-  it('isAiConfigured returns true when enabled with API key', () => {
-    saveAiConfig({ apiKey: 'sk-test', model: 'test', maxTokens: 1024, temperature: 0.7, enabled: true })
+  it('isAiConfigured always returns true (server provides default key)', () => {
     expect(isAiConfigured()).toBe(true)
+  })
+
+  it('isAiConfigured returns true even with no saved config', () => {
+    saveAiConfig({ apiKey: '', model: 'test', maxTokens: 1024, temperature: 0.7, enabled: false })
+    expect(isAiConfigured()).toBe(true)
+  })
+
+  it('hasCustomApiKey returns false when no key is set', () => {
+    expect(hasCustomApiKey()).toBe(false)
+  })
+
+  it('hasCustomApiKey returns false when key is empty string', () => {
+    saveAiConfig({ apiKey: '', model: 'test', maxTokens: 1024, temperature: 0.7, enabled: true })
+    expect(hasCustomApiKey()).toBe(false)
+  })
+
+  it('hasCustomApiKey returns true when user has set a key', () => {
+    saveAiConfig({ apiKey: 'sk-ant-test-key', model: 'test', maxTokens: 1024, temperature: 0.7, enabled: true })
+    expect(hasCustomApiKey()).toBe(true)
   })
 
   it('handles corrupted localStorage gracefully', () => {

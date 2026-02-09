@@ -33,32 +33,39 @@ export function saveAiConfig(config) {
   }
 }
 
-// Check if AI is configured
-export function isAiConfigured() {
+// Check if user has a custom API key configured
+export function hasCustomApiKey() {
   const config = getAiConfig()
-  return config.enabled && config.apiKey.length > 0
+  return config.apiKey.length > 0
+}
+
+// AI is always configured (server provides default key)
+export function isAiConfigured() {
+  return true
 }
 
 // Call Claude API via backend proxy (avoids CORS)
 export async function callClaudeApi(prompt, systemPrompt = '') {
   const config = getAiConfig()
 
-  if (!isAiConfigured()) {
-    throw new Error('AI not configured. Add your API key in settings.')
+  const body = {
+    prompt,
+    systemPrompt,
+    model: config.model,
+    maxTokens: config.maxTokens,
+    temperature: config.temperature,
+  }
+
+  // Only send apiKey if user has configured their own
+  if (config.apiKey) {
+    body.apiKey = config.apiKey
   }
 
   try {
     const response = await fetch('/api/ai/generate', {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({
-        prompt,
-        systemPrompt,
-        apiKey: config.apiKey,
-        model: config.model,
-        maxTokens: config.maxTokens,
-        temperature: config.temperature,
-      }),
+      body: JSON.stringify(body),
     })
 
     if (!response.ok) {

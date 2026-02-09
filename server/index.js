@@ -332,8 +332,11 @@ app.get('/api/linkedin/posts', async (req, res) => {
 app.post('/api/ai/generate', async (req, res) => {
   const { prompt, systemPrompt, apiKey, model, maxTokens, temperature } = req.body
 
-  if (!apiKey) {
-    return res.status(400).json({ error: 'API key is required' })
+  // Use user's key if provided, otherwise fall back to server-side key
+  const resolvedApiKey = apiKey || process.env.ANTHROPIC_API_KEY
+
+  if (!resolvedApiKey) {
+    return res.status(400).json({ error: 'No API key available. Please configure your own key in settings.' })
   }
   if (!prompt) {
     return res.status(400).json({ error: 'Prompt is required' })
@@ -343,7 +346,7 @@ app.post('/api/ai/generate', async (req, res) => {
     const response = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {
-        'x-api-key': apiKey,
+        'x-api-key': resolvedApiKey,
         'anthropic-version': '2023-06-01',
         'content-type': 'application/json',
       },

@@ -8,7 +8,7 @@ import EditPostModal from './components/EditPostModal'
 import SettingsModal from './components/SettingsModal'
 import LinkedInAuth from './components/LinkedInAuth'
 import PostHistory from './components/PostHistory'
-import { isAiConfigured } from './utils/aiUtils'
+import { hasCustomApiKey } from './utils/aiUtils'
 import { getLinkedInStatus, publishToLinkedIn } from './utils/linkedinApi'
 import {
   createPost,
@@ -26,7 +26,7 @@ export default function App() {
   const [editingPost, setEditingPost] = useState(null)
   const [showEditModal, setShowEditModal] = useState(false)
   const [showSettingsModal, setShowSettingsModal] = useState(false)
-  const [aiEnabled, setAiEnabled] = useState(false)
+  const [aiEnabled] = useState(true)
   const [linkedInStatus, setLinkedInStatus] = useState({ connected: false })
   const [publishing, setPublishing] = useState(null)
   const [composerContent, setComposerContent] = useState('')
@@ -52,7 +52,6 @@ export default function App() {
     initializeSampleData()
     const loadedPosts = getAllPosts()
     setPosts(loadedPosts)
-    setAiEnabled(isAiConfigured())
     getLinkedInStatus().then(setLinkedInStatus)
     checkOAuthRedirect()
   }, [checkOAuthRedirect])
@@ -123,7 +122,7 @@ export default function App() {
   }
 
   const handleSettingsSave = () => {
-    setAiEnabled(isAiConfigured())
+    // AI is always enabled; settings only control custom key/model
   }
 
   return (
@@ -140,12 +139,11 @@ export default function App() {
               onStatusChange={setLinkedInStatus}
             />
             <button
-              className={`settings-button ${aiEnabled ? 'enabled' : ''}`}
+              className="settings-button"
               onClick={() => setShowSettingsModal(true)}
-              title="Configure AI"
+              title="AI Settings"
             >
               ⚙️
-              {aiEnabled && <span className="ai-indicator">✓</span>}
             </button>
           </div>
         </div>

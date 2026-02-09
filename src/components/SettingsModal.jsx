@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { getAiConfig, saveAiConfig, isAiConfigured } from '../utils/aiUtils'
+import { getAiConfig, saveAiConfig, hasCustomApiKey } from '../utils/aiUtils'
 import './SettingsModal.css'
 
 export default function SettingsModal({ onClose, onSave }) {
@@ -7,9 +7,9 @@ export default function SettingsModal({ onClose, onSave }) {
   const [model, setModel] = useState('claude-3-5-sonnet-20241022')
   const [maxTokens, setMaxTokens] = useState(1024)
   const [temperature, setTemperature] = useState(0.7)
-  const [enabled, setEnabled] = useState(false)
   const [saveStatus, setSaveStatus] = useState('')
   const [showApiKey, setShowApiKey] = useState(false)
+  const [showCustomConfig, setShowCustomConfig] = useState(false)
 
   // Load config on mount
   useEffect(() => {
@@ -18,66 +18,79 @@ export default function SettingsModal({ onClose, onSave }) {
     setModel(config.model)
     setMaxTokens(config.maxTokens)
     setTemperature(config.temperature)
-    setEnabled(config.enabled)
+    setShowCustomConfig(config.apiKey.length > 0)
   }, [])
 
   const handleSave = () => {
-    if (enabled && !apiKey.trim()) {
-      alert('Please enter your API key!')
-      return
-    }
-
     const config = {
       apiKey: apiKey.trim(),
       model,
       maxTokens,
       temperature,
-      enabled,
+      enabled: true,
     }
 
     saveAiConfig(config)
-    setSaveStatus('✅ Settings saved!')
+    setSaveStatus('Settings saved!')
     setTimeout(() => setSaveStatus(''), 3000)
     onSave()
   }
 
-  const isConfigured = isAiConfigured()
+  const handleResetToDefault = () => {
+    setApiKey('')
+    setModel('claude-3-5-sonnet-20241022')
+    setMaxTokens(1024)
+    setTemperature(0.7)
+    setShowCustomConfig(false)
+
+    saveAiConfig({
+      apiKey: '',
+      model: 'claude-3-5-sonnet-20241022',
+      maxTokens: 1024,
+      temperature: 0.7,
+      enabled: true,
+    })
+    setSaveStatus('Reset to defaults!')
+    setTimeout(() => setSaveStatus(''), 3000)
+    onSave()
+  }
+
+  const usingCustomKey = hasCustomApiKey()
 
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-content" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
-          <h2>⚙️ AI Configuration</h2>
+          <h2>AI Settings</h2>
           <button className="close-button" onClick={onClose}>
             ✕
           </button>
         </div>
 
         <div className="modal-body">
-          {isConfigured && (
-            <div className="status-badge configured">
-              ✅ AI Configured & Ready
-            </div>
-          )}
-
-          <div className="form-group">
-            <label className="checkbox-label">
-              <input
-                type="checkbox"
-                checked={enabled}
-                onChange={(e) => setEnabled(e.target.checked)}
-              />
-              <span>Enable AI Features</span>
-            </label>
-            <p className="help-text">
-              Enable AI to generate posts, hashtags, and more
-            </p>
+          <div className={`status-badge ${usingCustomKey ? 'custom' : 'configured'}`}>
+            {usingCustomKey
+              ? 'Using your custom API key'
+              : 'AI enabled with default model'}
           </div>
 
-          {enabled && (
+          {!showCustomConfig ? (
+            <div className="info-box">
+              <p>
+                AI features are enabled by default. You can optionally configure
+                your own API key and model preferences.
+              </p>
+              <button
+                className="btn btn-link"
+                onClick={() => setShowCustomConfig(true)}
+              >
+                Use your own API key
+              </button>
+            </div>
+          ) : (
             <>
               <div className="form-group">
-                <label htmlFor="apiKey">Claude API Key</label>
+                <label htmlFor="apiKey">Claude API Key (optional)</label>
                 <div className="api-key-input-wrapper">
                   <input
                     id="apiKey"
@@ -157,25 +170,13 @@ export default function SettingsModal({ onClose, onSave }) {
                 </div>
               </div>
 
-              <div className="info-box">
-                <p>
-                  <strong>💡 Note:</strong> Your API key is stored locally in
-                  your browser and never sent to our servers. We only use it to
-                  call Claude API directly.
-                </p>
-              </div>
+              <button
+                className="btn btn-link reset-link"
+                onClick={handleResetToDefault}
+              >
+                Reset to defaults
+              </button>
             </>
-          )}
-
-          {!enabled && (
-            <div className="info-box warning">
-              <p>
-                <strong>AI Features Disabled</strong>
-                <br />
-                Enable AI to unlock: post generation, hashtag suggestions,
-                content ideas, and more.
-              </p>
-            </div>
           )}
         </div>
 
@@ -184,9 +185,11 @@ export default function SettingsModal({ onClose, onSave }) {
           <button className="btn btn-secondary" onClick={onClose}>
             Cancel
           </button>
-          <button className="btn btn-primary" onClick={handleSave}>
-            Save Settings
-          </button>
+          {showCustomConfig && (
+            <button className="btn btn-primary" onClick={handleSave}>
+              Save Settings
+            </button>
+          )}
         </div>
       </div>
     </div>
