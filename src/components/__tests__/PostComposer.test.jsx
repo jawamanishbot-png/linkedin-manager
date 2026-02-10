@@ -32,54 +32,36 @@ const renderComposer = (overrides = {}) => {
 }
 
 describe('PostComposer', () => {
-  it('renders the compose heading', () => {
+  it('renders the LinkedIn-style profile header', () => {
     renderComposer()
-    expect(screen.getByRole('heading', { level: 2 })).toHaveTextContent('Compose New Post')
+    expect(screen.getByText('New Post')).toBeInTheDocument()
+    expect(screen.getByText('Anyone')).toBeInTheDocument()
   })
 
   it('renders the textarea with content prop', () => {
     renderComposer({ content: 'Hello world' })
-    expect(screen.getByPlaceholderText(/What's on your mind/)).toHaveValue('Hello world')
+    expect(screen.getByPlaceholderText(/What do you want to talk about/)).toHaveValue('Hello world')
   })
 
-  it('renders the first comment textarea', () => {
-    renderComposer()
-    expect(screen.getByPlaceholderText(/Add a first comment/)).toBeInTheDocument()
-  })
-
-  it('shows character count based on content length', () => {
+  it('renders character ring', () => {
     renderComposer({ content: 'Hello' })
-    expect(screen.getByText('5 / 3000 characters')).toBeInTheDocument()
+    expect(screen.getByTitle('5 / 3000')).toBeInTheDocument()
   })
 
-  it('shows 0 characters when content is empty', () => {
-    renderComposer()
-    expect(screen.getByText('0 / 3000 characters')).toBeInTheDocument()
-  })
-
-  it('calls onContentChange when typing in main textarea', async () => {
+  it('calls onContentChange when typing', async () => {
     const user = userEvent.setup()
     const { props } = renderComposer()
 
-    const textarea = screen.getByPlaceholderText(/What's on your mind/)
+    const textarea = screen.getByPlaceholderText(/What do you want to talk about/)
     await user.type(textarea, 'H')
     expect(props.onContentChange).toHaveBeenCalled()
-  })
-
-  it('calls onFirstCommentChange when typing in first comment', async () => {
-    const user = userEvent.setup()
-    const { props } = renderComposer()
-
-    const textarea = screen.getByPlaceholderText(/Add a first comment/)
-    await user.type(textarea, 'My comment')
-    expect(props.onFirstCommentChange).toHaveBeenCalled()
   })
 
   it('calls onSaveDraft when content is not empty', async () => {
     const user = userEvent.setup()
     const { props } = renderComposer({ content: 'My draft post' })
 
-    await user.click(screen.getByText(/Save as Draft/))
+    await user.click(screen.getByText('Save Draft'))
     expect(props.onSaveDraft).toHaveBeenCalled()
   })
 
@@ -87,7 +69,7 @@ describe('PostComposer', () => {
     const user = userEvent.setup()
     const { props } = renderComposer({ content: '' })
 
-    await user.click(screen.getByText(/Save as Draft/))
+    await user.click(screen.getByText('Save Draft'))
     expect(props.onSaveDraft).not.toHaveBeenCalled()
   })
 
@@ -95,44 +77,87 @@ describe('PostComposer', () => {
     const user = userEvent.setup()
     const { props } = renderComposer({ content: 'Something' })
 
-    await user.click(screen.getByText(/Clear/))
+    await user.click(screen.getByText('Clear'))
     expect(props.onContentChange).toHaveBeenCalledWith('')
     expect(props.onImageChange).toHaveBeenCalledWith(null)
     expect(props.onFirstCommentChange).toHaveBeenCalledWith('')
   })
 
-  it('renders the formatting toolbar', () => {
+  it('renders formatting buttons in toolbar', () => {
     renderComposer()
-    expect(screen.getByTitle('Bold (select text first)')).toBeInTheDocument()
+    expect(screen.getByTitle('Bold')).toBeInTheDocument()
+    expect(screen.getByTitle('Italic')).toBeInTheDocument()
+    expect(screen.getByTitle('Bullet list')).toBeInTheDocument()
+    expect(screen.getByTitle('Numbered list')).toBeInTheDocument()
   })
 
-  it('renders schedule section with date and time inputs', () => {
+  it('renders image, comment, and schedule toggle icons', () => {
     renderComposer()
-    expect(screen.getByText('Date')).toBeInTheDocument()
-    expect(screen.getByText('Time')).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Schedule Post' })).toBeInTheDocument()
+    expect(screen.getByTitle('Add image')).toBeInTheDocument()
+    expect(screen.getByTitle('First comment')).toBeInTheDocument()
+    expect(screen.getByTitle('Schedule')).toBeInTheDocument()
   })
 
-  it('shows first comment section with hint text', () => {
+  it('toggles first comment panel when icon is clicked', async () => {
+    const user = userEvent.setup()
     renderComposer()
-    expect(screen.getByText(/Links in the first comment/)).toBeInTheDocument()
+
+    // Initially hidden
+    expect(screen.queryByPlaceholderText(/Add a first comment/)).not.toBeInTheDocument()
+
+    // Click to show
+    await user.click(screen.getByTitle('First comment'))
+    expect(screen.getByPlaceholderText(/Add a first comment/)).toBeInTheDocument()
+    expect(screen.getByText(/Links here get better reach/)).toBeInTheDocument()
+
+    // Click to hide
+    await user.click(screen.getByTitle('First comment'))
+    expect(screen.queryByPlaceholderText(/Add a first comment/)).not.toBeInTheDocument()
   })
 
-  it('shows undo button when canUndo is true', () => {
+  it('toggles schedule panel when icon is clicked', async () => {
+    const user = userEvent.setup()
+    renderComposer()
+
+    // Initially hidden - no date inputs
+    expect(screen.queryByDisplayValue('09:00')).not.toBeInTheDocument()
+
+    // Click to show
+    await user.click(screen.getByTitle('Schedule'))
+    expect(screen.getByDisplayValue('09:00')).toBeInTheDocument()
+  })
+
+  it('calls onFirstCommentChange when typing in first comment', async () => {
+    const user = userEvent.setup()
+    const { props } = renderComposer()
+
+    await user.click(screen.getByTitle('First comment'))
+    const textarea = screen.getByPlaceholderText(/Add a first comment/)
+    await user.type(textarea, 'My comment')
+    expect(props.onFirstCommentChange).toHaveBeenCalled()
+  })
+
+  it('auto-shows first comment panel when firstComment has content', () => {
+    renderComposer({ firstComment: 'Existing comment' })
+    expect(screen.getByPlaceholderText(/Add a first comment/)).toBeInTheDocument()
+    expect(screen.getByPlaceholderText(/Add a first comment/)).toHaveValue('Existing comment')
+  })
+
+  it('shows undo button in toolbar when canUndo is true', () => {
     renderComposer({ canUndo: true })
-    expect(screen.getByText('Undo')).toBeInTheDocument()
+    expect(screen.getByTitle('Undo')).toBeInTheDocument()
   })
 
-  it('does not show undo button when canUndo is false', () => {
+  it('does not show undo when canUndo is false', () => {
     renderComposer({ canUndo: false })
-    expect(screen.queryByText('Undo')).not.toBeInTheDocument()
+    expect(screen.queryByTitle('Undo')).not.toBeInTheDocument()
   })
 
   it('calls onUndo when undo button is clicked', async () => {
     const user = userEvent.setup()
     const { props } = renderComposer({ canUndo: true })
 
-    await user.click(screen.getByText('Undo'))
+    await user.click(screen.getByTitle('Undo'))
     expect(props.onUndo).toHaveBeenCalled()
   })
 
@@ -152,7 +177,7 @@ describe('PostComposer', () => {
       content: 'Original',
       aiPreview: { content: 'AI text', label: 'Test' },
     })
-    expect(screen.getByPlaceholderText(/What's on your mind/)).toBeDisabled()
+    expect(screen.getByPlaceholderText(/What do you want to talk about/)).toBeDisabled()
   })
 
   it('calls onAcceptAi when Accept is clicked', async () => {
@@ -175,5 +200,13 @@ describe('PostComposer', () => {
 
     await user.click(screen.getByText('Discard'))
     expect(props.onDiscardAi).toHaveBeenCalled()
+  })
+
+  it('shows warning character count when near limit', () => {
+    const longContent = 'a'.repeat(2750)
+    renderComposer({ content: longContent })
+    expect(screen.getByTitle(`${longContent.length} / 3000`)).toBeInTheDocument()
+    // Should show remaining count when > 90%
+    expect(screen.getByText(`${3000 - longContent.length}`)).toBeInTheDocument()
   })
 })
