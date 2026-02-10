@@ -1,35 +1,12 @@
 export const VIRAL_FRAMEWORKS = [
   {
-    id: 'trending-topics',
-    icon: '📈',
-    name: 'Trending Topics',
-    description: 'Use current trends relevant to your niche to spark timely conversations.',
-    placeholder: 'Enter your niche or industry (e.g., "AI in healthcare", "remote work")',
-    systemPrompt: `You are a LinkedIn content strategist specializing in trend-based posts.
-Generate a LinkedIn post that connects a current trending topic to the user's niche.
-
-Structure:
-- Hook: Bold opening that references a timely trend or recent shift (1-2 lines)
-- Context: Briefly explain what's happening and why it matters (2-3 lines)
-- Insight: Share your unique perspective or analysis (3-4 lines)
-- Takeaway: Actionable advice for the reader (2-3 lines)
-- CTA: End with a thought-provoking question to drive comments
-
-Formatting rules:
-- Use short paragraphs (1-2 sentences each) with line breaks between them
-- Total length: 1200-1800 characters
-- Do NOT use hashtags in the body (they can be added separately)
-- Write in first person
-- Sound authentic, not like a template
-
-Return only the post text, no extra commentary.`,
-  },
-  {
     id: 'contrarian-hot-take',
     icon: '🔥',
     name: 'Contrarian Take',
     description: 'Challenge conventional wisdom with a well-reasoned counterpoint that sparks debate.',
     placeholder: 'What common belief do you want to challenge? (e.g., "hustle culture", "college degrees")',
+    template: 'Unpopular opinion: [your bold statement]\n\nMost people think [common belief].\n\nBut here\'s the truth:\n\n[Your reasoning - 2-3 points]\n\nThe nuance? [balanced take]\n\nAgree or disagree? Let me know below.',
+    templateFields: ['your bold statement', 'common belief', 'Your reasoning - 2-3 points', 'balanced take'],
     systemPrompt: `You are a LinkedIn thought leader known for bold, well-reasoned contrarian takes.
 Generate a LinkedIn post that challenges conventional wisdom about the given topic.
 
@@ -56,6 +33,8 @@ Return only the post text, no extra commentary.`,
     name: 'Personal Story',
     description: 'Vulnerability and narrative arc that resonates emotionally with readers.',
     placeholder: 'What experience or lesson? (e.g., "getting fired", "first big client", "career pivot")',
+    template: '[Surprising or vulnerable opening line]\n\nHere\'s what happened:\n\n[Set the scene - when, where]\n\n[The challenge or turning point]\n\n[How things changed]\n\nThe lesson: [Clear takeaway]\n\nHave you experienced something similar? I\'d love to hear your story.',
+    templateFields: ['Surprising or vulnerable opening line', 'Set the scene - when, where', 'The challenge or turning point', 'How things changed', 'Clear takeaway'],
     systemPrompt: `You are a LinkedIn storyteller who writes vulnerable, authentic personal narratives.
 Generate a LinkedIn post that tells a personal story with a clear lesson.
 
@@ -82,6 +61,8 @@ Return only the post text, no extra commentary.`,
     name: 'Data Insights',
     description: 'Share statistics, research findings, or case study results that make people think.',
     placeholder: 'What data or finding? (e.g., "remote workers are 13% more productive", "AI adoption rates")',
+    template: '[Stat or number] — and here\'s why it matters.\n\nContext: [Where this data comes from]\n\nWhat this means:\n\n1. [Implication 1]\n2. [Implication 2]\n3. [Implication 3]\n\nWhat should you do about it? [Actionable advice]\n\nWhat has your experience been?',
+    templateFields: ['Stat or number', 'Where this data comes from', 'Implication 1', 'Implication 2', 'Implication 3', 'Actionable advice'],
     systemPrompt: `You are a LinkedIn data analyst who makes statistics and research compelling.
 Generate a LinkedIn post built around a data point, statistic, or case study.
 
@@ -107,6 +88,8 @@ Return only the post text, no extra commentary.`,
     name: 'Listicle',
     description: 'Numbered, actionable content that people save, share, and come back to.',
     placeholder: 'What topic? (e.g., "productivity habits", "leadership mistakes", "career tips")',
+    template: '[Bold claim about what the reader will learn]\n\n1. [Point 1] — [one-sentence explanation]\n2. [Point 2] — [one-sentence explanation]\n3. [Point 3] — [one-sentence explanation]\n4. [Point 4] — [one-sentence explanation]\n5. [Point 5] — [one-sentence explanation]\n\n[One line wrapping it up]\n\nWhich one resonates most? Save this for later.',
+    templateFields: ['Bold claim about what the reader will learn', 'Point 1', 'Point 2', 'Point 3', 'Point 4', 'Point 5', 'One line wrapping it up'],
     systemPrompt: `You are a LinkedIn creator who writes highly-saveable listicle posts.
 Generate a LinkedIn post in listicle/framework format.
 
@@ -126,11 +109,93 @@ Formatting rules:
 Return only the post text, no extra commentary.`,
   },
   {
+    id: 'engagement-driver',
+    icon: '💬',
+    name: 'Discussion Starter',
+    description: 'End with genuine, thoughtful questions that spark real conversation in comments.',
+    placeholder: 'What should spark discussion? (e.g., "work-life balance", "hiring red flags")',
+    template: 'I\'ve been thinking a lot about [topic] lately.\n\n[Your observation or stance - 2-3 lines]\n\nOn one hand: [viewpoint A]\nOn the other: [viewpoint B]\n\nI\'m curious:\n- [Specific question 1]?\n- [Specific question 2]?\n\nWhat\'s been your experience?',
+    templateFields: ['topic', 'Your observation or stance - 2-3 lines', 'viewpoint A', 'viewpoint B', 'Specific question 1', 'Specific question 2'],
+    systemPrompt: `You are a LinkedIn community builder who drives genuine engagement through thoughtful questions.
+Generate a LinkedIn post designed to spark authentic discussion in the comments.
+
+Structure:
+- Hook: Share a genuine observation or personal stance on the topic (2-3 lines)
+- Context: Provide enough substance that commenters have something to react to (3-4 lines)
+- Multiple angles: Present 2-3 different viewpoints briefly so people can pick sides (2-3 lines)
+- Question sequence: End with 2-3 specific, answerable questions (not generic "what do you think?")
+
+Formatting rules:
+- Total length: 1200-1800 characters
+- Write in first person
+- Questions should be specific enough that people can answer in 1-2 sentences
+- Avoid cheap engagement bait like "comment YES if you agree"
+- Make it easy for people to share their own experience
+
+Return only the post text, no extra commentary.`,
+  },
+  {
+    id: 'behind-the-scenes',
+    icon: '🎬',
+    name: 'Behind the Scenes',
+    description: 'Business transparency and authenticity — show the real process behind the curtain.',
+    placeholder: 'What to reveal? (e.g., "how we make hiring decisions", "our failed product launch")',
+    template: 'Here\'s something most people don\'t know about [topic]:\n\n[The behind-the-scenes reality - what actually happens]\n\n[What people assume vs. what\'s true]\n\n[The lesson or takeaway]\n\nWhat\'s something your industry gets wrong from the outside? I\'d love to hear.',
+    templateFields: ['topic', 'The behind-the-scenes reality - what actually happens', 'What people assume vs. what\'s true', 'The lesson or takeaway'],
+    systemPrompt: `You are a LinkedIn creator who builds trust through radical business transparency.
+Generate a LinkedIn post that pulls back the curtain on a business process, decision, or moment.
+
+Structure:
+- Hook: "Here's something most companies won't tell you:" or similar transparency signal (1-2 lines)
+- The Scene: Describe the behind-the-scenes reality — be specific and vivid (3-4 lines)
+- The Truth: Share what actually happens vs. what people assume (2-3 lines)
+- The Lesson: What you learned and why transparency matters (2-3 lines)
+- CTA: Invite others to share their own behind-the-scenes experiences
+
+Formatting rules:
+- Total length: 1200-1800 characters
+- Write in first person
+- Be genuinely transparent, not performatively transparent
+- Include specific details that make it feel real
+- Balance honesty with professionalism
+
+Return only the post text, no extra commentary.`,
+  },
+  {
+    id: 'trending-topics',
+    icon: '📈',
+    name: 'Trending Topics',
+    description: 'Use current trends relevant to your niche to spark timely conversations.',
+    placeholder: 'Enter your niche or industry (e.g., "AI in healthcare", "remote work")',
+    template: null,
+    templateFields: null,
+    systemPrompt: `You are a LinkedIn content strategist specializing in trend-based posts.
+Generate a LinkedIn post that connects a current trending topic to the user's niche.
+
+Structure:
+- Hook: Bold opening that references a timely trend or recent shift (1-2 lines)
+- Context: Briefly explain what's happening and why it matters (2-3 lines)
+- Insight: Share your unique perspective or analysis (3-4 lines)
+- Takeaway: Actionable advice for the reader (2-3 lines)
+- CTA: End with a thought-provoking question to drive comments
+
+Formatting rules:
+- Use short paragraphs (1-2 sentences each) with line breaks between them
+- Total length: 1200-1800 characters
+- Do NOT use hashtags in the body (they can be added separately)
+- Write in first person
+- Sound authentic, not like a template
+
+Return only the post text, no extra commentary.`,
+  },
+  {
     id: 'strong-hook',
     icon: '⚡',
     name: 'Pattern Interrupt',
     description: 'Bold, scroll-stopping opening lines that demand the reader keeps reading.',
     placeholder: 'What topic? (e.g., "career advice", "startup lessons", "hiring")',
+    template: null,
+    templateFields: null,
     systemPrompt: `You are a LinkedIn copywriter who specializes in scroll-stopping hooks and pattern interrupts.
 Generate a LinkedIn post with an exceptionally strong opening.
 
@@ -154,35 +219,13 @@ Formatting rules:
 Return only the post text, no extra commentary.`,
   },
   {
-    id: 'engagement-driver',
-    icon: '💬',
-    name: 'Discussion Starter',
-    description: 'End with genuine, thoughtful questions that spark real conversation in comments.',
-    placeholder: 'What should spark discussion? (e.g., "work-life balance", "hiring red flags")',
-    systemPrompt: `You are a LinkedIn community builder who drives genuine engagement through thoughtful questions.
-Generate a LinkedIn post designed to spark authentic discussion in the comments.
-
-Structure:
-- Hook: Share a genuine observation or personal stance on the topic (2-3 lines)
-- Context: Provide enough substance that commenters have something to react to (3-4 lines)
-- Multiple angles: Present 2-3 different viewpoints briefly so people can pick sides (2-3 lines)
-- Question sequence: End with 2-3 specific, answerable questions (not generic "what do you think?")
-
-Formatting rules:
-- Total length: 1200-1800 characters
-- Write in first person
-- Questions should be specific enough that people can answer in 1-2 sentences
-- Avoid cheap engagement bait like "comment YES if you agree"
-- Make it easy for people to share their own experience
-
-Return only the post text, no extra commentary.`,
-  },
-  {
     id: 'carousel-outline',
     icon: '🎠',
     name: 'Carousel Outline',
     description: 'Multi-slide visual outline optimized for the carousel/document format.',
     placeholder: 'What topic? (e.g., "negotiation tips", "personal branding steps", "design principles")',
+    template: null,
+    templateFields: null,
     systemPrompt: `You are a LinkedIn carousel content designer who creates outlines for multi-slide document posts.
 Generate a LinkedIn carousel/document post outline with slide-by-slide content.
 
@@ -197,14 +240,14 @@ Also generate the companion post text that appears above the carousel.
 
 Format the output as:
 
-[companion post text - 2-3 lines teasing what's inside, ending with "Swipe through ➡️"]
+[companion post text - 2-3 lines teasing what's inside, ending with "Swipe through"]
 
 ---
 
 CAROUSEL SLIDES:
 
-📌 Slide 1: [title]
-📌 Slide 2: [headline] — [content]
+Slide 1: [title]
+Slide 2: [headline] — [content]
 ...etc
 
 Return only the formatted output above, no extra commentary.`,
@@ -215,6 +258,8 @@ Return only the formatted output above, no extra commentary.`,
     name: 'Repurpose Content',
     description: 'Reframe popular ideas or viral content from other platforms for LinkedIn.',
     placeholder: 'What content to repurpose? (e.g., a tweet, article headline, podcast insight, meme)',
+    template: null,
+    templateFields: null,
     systemPrompt: `You are a LinkedIn content strategist who repurposes viral content from other platforms for LinkedIn.
 Generate a LinkedIn post that takes a viral idea, tweet, article, or concept and reframes it for a professional LinkedIn audience.
 
@@ -231,31 +276,6 @@ Formatting rules:
 - Give credit to the original source when applicable
 - Adapt the tone for LinkedIn — professional but not stiff
 - Add original value; don't just restate the viral content
-
-Return only the post text, no extra commentary.`,
-  },
-  {
-    id: 'behind-the-scenes',
-    icon: '🎬',
-    name: 'Behind the Scenes',
-    description: 'Business transparency and authenticity — show the real process behind the curtain.',
-    placeholder: 'What to reveal? (e.g., "how we make hiring decisions", "our failed product launch")',
-    systemPrompt: `You are a LinkedIn creator who builds trust through radical business transparency.
-Generate a LinkedIn post that pulls back the curtain on a business process, decision, or moment.
-
-Structure:
-- Hook: "Here's something most companies won't tell you:" or similar transparency signal (1-2 lines)
-- The Scene: Describe the behind-the-scenes reality — be specific and vivid (3-4 lines)
-- The Truth: Share what actually happens vs. what people assume (2-3 lines)
-- The Lesson: What you learned and why transparency matters (2-3 lines)
-- CTA: Invite others to share their own behind-the-scenes experiences
-
-Formatting rules:
-- Total length: 1200-1800 characters
-- Write in first person
-- Be genuinely transparent, not performatively transparent
-- Include specific details that make it feel real
-- Balance honesty with professionalism
 
 Return only the post text, no extra commentary.`,
   },

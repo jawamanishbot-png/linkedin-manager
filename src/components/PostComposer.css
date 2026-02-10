@@ -12,9 +12,13 @@
   color: #333;
 }
 
+.textarea-wrapper {
+  position: relative;
+}
+
 .post-textarea {
   width: 100%;
-  min-height: 120px;
+  min-height: 180px;
   padding: 12px;
   border: 1px solid #e0e0e0;
   border-radius: 8px;
@@ -22,6 +26,7 @@
   font-size: 0.95rem;
   resize: vertical;
   transition: border-color 0.2s ease;
+  line-height: 1.6;
 }
 
 .post-textarea.has-toolbar {
@@ -34,11 +39,39 @@
   box-shadow: 0 0 0 3px rgba(10, 102, 194, 0.1);
 }
 
+.post-textarea.dimmed {
+  opacity: 0.4;
+  pointer-events: none;
+}
+
+.char-count-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 8px 0 15px 0;
+}
+
 .char-count {
   font-size: 0.85rem;
   color: #666;
-  margin: 8px 0 15px 0;
-  text-align: right;
+}
+
+.btn-undo {
+  background: none;
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
+  padding: 4px 12px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #666;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-undo:hover {
+  border-color: #0a66c2;
+  color: #0a66c2;
+  background: #f0f6ff;
 }
 
 .schedule-section {
@@ -87,11 +120,24 @@
   box-shadow: 0 0 0 2px rgba(10, 102, 194, 0.1);
 }
 
+.schedule-btn {
+  margin-top: 12px;
+  width: 100%;
+}
+
 .composer-actions {
   display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
+  grid-template-columns: 1fr 1fr;
   gap: 12px;
   margin-top: 20px;
+}
+
+.composer-actions.sticky-bottom {
+  position: sticky;
+  bottom: 0;
+  background: white;
+  padding: 16px 0 0;
+  border-top: 1px solid #f0f0f0;
 }
 
 .btn {

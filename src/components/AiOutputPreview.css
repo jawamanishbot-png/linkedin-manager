@@ -1,0 +1,92 @@
+.ai-output-preview {
+  border: 2px solid #0a66c2;
+  border-radius: 8px;
+  background: #f8fbff;
+  margin: 12px 0;
+  overflow: hidden;
+}
+
+.ai-output-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 16px;
+  background: #e9f2ff;
+  border-bottom: 1px solid #d0e2ff;
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: #0a66c2;
+}
+
+.ai-output-body {
+  padding: 16px;
+  max-height: 300px;
+  overflow-y: auto;
+  white-space: pre-wrap;
+  font-family: inherit;
+  font-size: 0.95rem;
+  line-height: 1.6;
+  color: #333;
+}
+
+.ai-output-actions {
+  display: flex;
+  justify-content: space-between;
+  padding: 12px 16px;
+  border-top: 1px solid #e0e8ff;
+  gap: 12px;
+}
+
+.ai-output-actions .btn-accept {
+  background: #0a66c2;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 8px 20px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.ai-output-actions .btn-accept:hover {
+  background: #0949a4;
+}
+
+.ai-output-actions .btn-discard {
+  background: #f0f0f0;
+  color: #333;
+  border: none;
+  border-radius: 6px;
+  padding: 8px 20px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.ai-output-actions .btn-discard:hover {
+  background: #e0e0e0;
+}
+
+.btn-retry {
+  background: none;
+  border: 1px solid #0a66c2;
+  color: #0a66c2;
+  border-radius: 6px;
+  padding: 4px 12px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-retry:hover {
+  background: #0a66c2;
+  color: white;
+}
+
+.btn-retry:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}

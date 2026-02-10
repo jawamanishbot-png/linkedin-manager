@@ -2,46 +2,44 @@ import { describe, it, expect, vi } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import PostComposer from '../PostComposer'
+import { ToastProvider } from '../ToastNotification'
 
-// Mock aiUtils to prevent import errors in AiAssistant and ViralFrameworks
-vi.mock('../../utils/aiUtils', () => ({
-  generatePost: vi.fn(),
-  generateHashtags: vi.fn(),
-  rewritePost: vi.fn(),
-  improvePost: vi.fn(),
-  generatePostIdeas: vi.fn(),
-  generateFirstComment: vi.fn(),
-  generateFromFramework: vi.fn(),
-}))
-
-// Mock alert
-globalThis.alert = vi.fn()
-
-describe('PostComposer', () => {
-  const defaultProps = {
-    onSaveDraft: vi.fn(),
-    onSchedule: vi.fn(),
+const renderComposer = (overrides = {}) => {
+  const props = {
+    content: '',
+    image: null,
+    firstComment: '',
     onContentChange: vi.fn(),
     onImageChange: vi.fn(),
     onFirstCommentChange: vi.fn(),
-    aiEnabled: false,
+    onSaveDraft: vi.fn(),
+    onSchedule: vi.fn(),
+    aiPreview: null,
+    onAcceptAi: vi.fn(),
+    onDiscardAi: vi.fn(),
+    onRetryAi: vi.fn(),
+    isRetrying: false,
+    canUndo: false,
+    onUndo: vi.fn(),
+    ...overrides,
   }
+  const result = render(
+    <ToastProvider>
+      <PostComposer {...props} />
+    </ToastProvider>
+  )
+  return { ...result, props }
+}
 
-  const renderComposer = (overrides = {}) => {
-    const props = { ...defaultProps, ...overrides }
-    // Reset mocks
-    Object.values(props).forEach((fn) => { if (typeof fn === 'function') fn.mockClear?.() })
-    return render(<PostComposer {...props} />)
-  }
-
+describe('PostComposer', () => {
   it('renders the compose heading', () => {
     renderComposer()
     expect(screen.getByRole('heading', { level: 2 })).toHaveTextContent('Compose New Post')
   })
 
-  it('renders the textarea', () => {
-    renderComposer()
-    expect(screen.getByPlaceholderText(/What's on your mind/)).toBeInTheDocument()
+  it('renders the textarea with content prop', () => {
+    renderComposer({ content: 'Hello world' })
+    expect(screen.getByPlaceholderText(/What's on your mind/)).toHaveValue('Hello world')
   })
 
   it('renders the first comment textarea', () => {
@@ -49,101 +47,58 @@ describe('PostComposer', () => {
     expect(screen.getByPlaceholderText(/Add a first comment/)).toBeInTheDocument()
   })
 
-  it('renders character counter starting at 0', () => {
-    renderComposer()
-    expect(screen.getByText('0 / 3000 characters')).toBeInTheDocument()
+  it('shows character count based on content length', () => {
+    renderComposer({ content: 'Hello' })
+    expect(screen.getByText('5 / 3000 characters')).toBeInTheDocument()
   })
 
-  it('updates character count as user types', async () => {
-    const user = userEvent.setup()
+  it('shows 0 characters when content is empty', () => {
     renderComposer()
-
-    const textarea = screen.getByPlaceholderText(/What's on your mind/)
-    await user.type(textarea, 'Hello')
-    expect(screen.getByText('5 / 3000 characters')).toBeInTheDocument()
+    expect(screen.getByText('0 / 3000 characters')).toBeInTheDocument()
   })
 
   it('calls onContentChange when typing in main textarea', async () => {
     const user = userEvent.setup()
-    const onContentChange = vi.fn()
-    renderComposer({ onContentChange })
+    const { props } = renderComposer()
 
     const textarea = screen.getByPlaceholderText(/What's on your mind/)
-    await user.type(textarea, 'Hi')
-    expect(onContentChange).toHaveBeenCalled()
+    await user.type(textarea, 'H')
+    expect(props.onContentChange).toHaveBeenCalled()
   })
 
   it('calls onFirstCommentChange when typing in first comment', async () => {
     const user = userEvent.setup()
-    const onFirstCommentChange = vi.fn()
-    renderComposer({ onFirstCommentChange })
+    const { props } = renderComposer()
 
     const textarea = screen.getByPlaceholderText(/Add a first comment/)
     await user.type(textarea, 'My comment')
-    expect(onFirstCommentChange).toHaveBeenCalled()
+    expect(props.onFirstCommentChange).toHaveBeenCalled()
   })
 
-  it('shows alert when saving draft with empty content', async () => {
+  it('calls onSaveDraft when content is not empty', async () => {
     const user = userEvent.setup()
-    renderComposer()
+    const { props } = renderComposer({ content: 'My draft post' })
 
     await user.click(screen.getByText(/Save as Draft/))
-    expect(globalThis.alert).toHaveBeenCalledWith('Please write something first!')
+    expect(props.onSaveDraft).toHaveBeenCalled()
   })
 
-  it('calls onSaveDraft with content, image, and firstComment', async () => {
+  it('does not call onSaveDraft when content is empty', async () => {
     const user = userEvent.setup()
-    const onSaveDraft = vi.fn()
-    renderComposer({ onSaveDraft })
-
-    const textarea = screen.getByPlaceholderText(/What's on your mind/)
-    await user.type(textarea, 'My draft post')
-
-    const firstComment = screen.getByPlaceholderText(/Add a first comment/)
-    await user.type(firstComment, 'Link here')
+    const { props } = renderComposer({ content: '' })
 
     await user.click(screen.getByText(/Save as Draft/))
-    expect(onSaveDraft).toHaveBeenCalledWith('My draft post', null, 'Link here')
+    expect(props.onSaveDraft).not.toHaveBeenCalled()
   })
 
-  it('clears form after saving draft', async () => {
+  it('calls clear callbacks when Clear button is clicked', async () => {
     const user = userEvent.setup()
-    renderComposer()
-
-    const textarea = screen.getByPlaceholderText(/What's on your mind/)
-    await user.type(textarea, 'Draft content')
-    await user.click(screen.getByText(/Save as Draft/))
-
-    expect(textarea).toHaveValue('')
-    expect(screen.getByText('0 / 3000 characters')).toBeInTheDocument()
-  })
-
-  it('shows alert when scheduling without date', async () => {
-    const user = userEvent.setup()
-    renderComposer()
-
-    const textarea = screen.getByPlaceholderText(/What's on your mind/)
-    await user.type(textarea, 'Scheduled post')
-    await user.click(screen.getByRole('button', { name: /Schedule Post/ }))
-
-    expect(globalThis.alert).toHaveBeenCalledWith('Please pick a date!')
-  })
-
-  it('clears form with Clear button', async () => {
-    const user = userEvent.setup()
-    const onContentChange = vi.fn()
-    const onImageChange = vi.fn()
-    const onFirstCommentChange = vi.fn()
-    renderComposer({ onContentChange, onImageChange, onFirstCommentChange })
-
-    const textarea = screen.getByPlaceholderText(/What's on your mind/)
-    await user.type(textarea, 'Something')
+    const { props } = renderComposer({ content: 'Something' })
 
     await user.click(screen.getByText(/Clear/))
-    expect(textarea).toHaveValue('')
-    expect(onContentChange).toHaveBeenLastCalledWith('')
-    expect(onImageChange).toHaveBeenLastCalledWith(null)
-    expect(onFirstCommentChange).toHaveBeenLastCalledWith('')
+    expect(props.onContentChange).toHaveBeenCalledWith('')
+    expect(props.onImageChange).toHaveBeenCalledWith(null)
+    expect(props.onFirstCommentChange).toHaveBeenCalledWith('')
   })
 
   it('renders the formatting toolbar', () => {
@@ -151,15 +106,11 @@ describe('PostComposer', () => {
     expect(screen.getByTitle('Bold (select text first)')).toBeInTheDocument()
   })
 
-  it('renders the hook templates toggle', () => {
-    renderComposer()
-    expect(screen.getByText('Hook & CTA Templates')).toBeInTheDocument()
-  })
-
   it('renders schedule section with date and time inputs', () => {
     renderComposer()
     expect(screen.getByText('Date')).toBeInTheDocument()
     expect(screen.getByText('Time')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Schedule Post' })).toBeInTheDocument()
   })
 
   it('shows first comment section with hint text', () => {
@@ -167,15 +118,62 @@ describe('PostComposer', () => {
     expect(screen.getByText(/Links in the first comment/)).toBeInTheDocument()
   })
 
-  it('does not render AI assistant or viral frameworks when aiEnabled is false', () => {
-    renderComposer({ aiEnabled: false })
-    expect(screen.queryByText(/AI Assistant/)).not.toBeInTheDocument()
-    expect(screen.queryByText(/Viral Post Frameworks/)).not.toBeInTheDocument()
+  it('shows undo button when canUndo is true', () => {
+    renderComposer({ canUndo: true })
+    expect(screen.getByText('Undo')).toBeInTheDocument()
   })
 
-  it('renders AI assistant and viral frameworks when aiEnabled is true', () => {
-    renderComposer({ aiEnabled: true })
-    expect(screen.getByText(/AI Assistant/)).toBeInTheDocument()
-    expect(screen.getByText(/Viral Post Frameworks/)).toBeInTheDocument()
+  it('does not show undo button when canUndo is false', () => {
+    renderComposer({ canUndo: false })
+    expect(screen.queryByText('Undo')).not.toBeInTheDocument()
+  })
+
+  it('calls onUndo when undo button is clicked', async () => {
+    const user = userEvent.setup()
+    const { props } = renderComposer({ canUndo: true })
+
+    await user.click(screen.getByText('Undo'))
+    expect(props.onUndo).toHaveBeenCalled()
+  })
+
+  it('shows AI output preview when aiPreview is set', () => {
+    renderComposer({
+      content: 'Original',
+      aiPreview: { content: 'AI generated text', label: 'Generated Post' },
+    })
+    expect(screen.getByText('Generated Post')).toBeInTheDocument()
+    expect(screen.getByText('AI generated text')).toBeInTheDocument()
+    expect(screen.getByText('Accept Changes')).toBeInTheDocument()
+    expect(screen.getByText('Discard')).toBeInTheDocument()
+  })
+
+  it('disables textarea when aiPreview is active', () => {
+    renderComposer({
+      content: 'Original',
+      aiPreview: { content: 'AI text', label: 'Test' },
+    })
+    expect(screen.getByPlaceholderText(/What's on your mind/)).toBeDisabled()
+  })
+
+  it('calls onAcceptAi when Accept is clicked', async () => {
+    const user = userEvent.setup()
+    const { props } = renderComposer({
+      content: 'Original',
+      aiPreview: { content: 'AI text', label: 'Test' },
+    })
+
+    await user.click(screen.getByText('Accept Changes'))
+    expect(props.onAcceptAi).toHaveBeenCalled()
+  })
+
+  it('calls onDiscardAi when Discard is clicked', async () => {
+    const user = userEvent.setup()
+    const { props } = renderComposer({
+      content: 'Original',
+      aiPreview: { content: 'AI text', label: 'Test' },
+    })
+
+    await user.click(screen.getByText('Discard'))
+    expect(props.onDiscardAi).toHaveBeenCalled()
   })
 })
