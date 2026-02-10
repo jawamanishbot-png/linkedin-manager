@@ -1,10 +1,17 @@
 import { useState, useEffect } from 'react'
-import { getAiConfig, saveAiConfig, hasCustomApiKey } from '../utils/aiUtils'
+import { getAiConfig, saveAiConfig, hasCustomApiKey, getModelsForProvider } from '../utils/aiUtils'
 import './SettingsModal.css'
 
+const PROVIDERS = [
+  { value: 'gemini', label: 'Google Gemini (Free tier available)' },
+  { value: 'claude', label: 'Anthropic Claude' },
+  { value: 'openai', label: 'OpenAI (ChatGPT)' },
+]
+
 export default function SettingsModal({ onClose, onSave }) {
+  const [provider, setProvider] = useState('gemini')
   const [apiKey, setApiKey] = useState('')
-  const [model, setModel] = useState('claude-3-5-sonnet-20241022')
+  const [model, setModel] = useState('gemini-2.0-flash')
   const [maxTokens, setMaxTokens] = useState(1024)
   const [temperature, setTemperature] = useState(0.7)
   const [saveStatus, setSaveStatus] = useState('')
@@ -14,6 +21,7 @@ export default function SettingsModal({ onClose, onSave }) {
   // Load config on mount
   useEffect(() => {
     const config = getAiConfig()
+    setProvider(config.provider || 'gemini')
     setApiKey(config.apiKey)
     setModel(config.model)
     setMaxTokens(config.maxTokens)
@@ -21,8 +29,15 @@ export default function SettingsModal({ onClose, onSave }) {
     setShowCustomConfig(config.apiKey.length > 0)
   }, [])
 
+  const handleProviderChange = (newProvider) => {
+    setProvider(newProvider)
+    const models = getModelsForProvider(newProvider)
+    setModel(models[0])
+  }
+
   const handleSave = () => {
     const config = {
+      provider,
       apiKey: apiKey.trim(),
       model,
       maxTokens,
@@ -37,15 +52,17 @@ export default function SettingsModal({ onClose, onSave }) {
   }
 
   const handleResetToDefault = () => {
+    setProvider('gemini')
     setApiKey('')
-    setModel('claude-3-5-sonnet-20241022')
+    setModel('gemini-2.0-flash')
     setMaxTokens(1024)
     setTemperature(0.7)
     setShowCustomConfig(false)
 
     saveAiConfig({
+      provider: 'gemini',
       apiKey: '',
-      model: 'claude-3-5-sonnet-20241022',
+      model: 'gemini-2.0-flash',
       maxTokens: 1024,
       temperature: 0.7,
       enabled: true,
@@ -56,6 +73,7 @@ export default function SettingsModal({ onClose, onSave }) {
   }
 
   const usingCustomKey = hasCustomApiKey()
+  const availableModels = getModelsForProvider(provider)
 
   return (
     <div className="modal-overlay" onClick={onClose}>
@@ -71,14 +89,14 @@ export default function SettingsModal({ onClose, onSave }) {
           <div className={`status-badge ${usingCustomKey ? 'custom' : 'configured'}`}>
             {usingCustomKey
               ? 'Using your custom API key'
-              : 'AI enabled with default model'}
+              : 'AI enabled with Gemini (free)'}
           </div>
 
           {!showCustomConfig ? (
             <div className="info-box">
               <p>
-                AI features are enabled by default. You can optionally configure
-                your own API key and model preferences.
+                AI features are enabled by default using Google Gemini's free tier.
+                You can optionally configure your own API key and provider.
               </p>
               <button
                 className="btn btn-link"
@@ -90,14 +108,29 @@ export default function SettingsModal({ onClose, onSave }) {
           ) : (
             <>
               <div className="form-group">
-                <label htmlFor="apiKey">Claude API Key (optional)</label>
+                <label htmlFor="provider">AI Provider</label>
+                <select
+                  id="provider"
+                  value={provider}
+                  onChange={(e) => handleProviderChange(e.target.value)}
+                >
+                  {PROVIDERS.map((p) => (
+                    <option key={p.value} value={p.value}>
+                      {p.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="apiKey">API Key (optional)</label>
                 <div className="api-key-input-wrapper">
                   <input
                     id="apiKey"
                     type={showApiKey ? 'text' : 'password'}
                     value={apiKey}
                     onChange={(e) => setApiKey(e.target.value)}
-                    placeholder="sk-ant-..."
+                    placeholder={provider === 'gemini' ? 'AIza...' : provider === 'openai' ? 'sk-...' : 'sk-ant-...'}
                     className="api-key-input"
                   />
                   <button
@@ -109,15 +142,27 @@ export default function SettingsModal({ onClose, onSave }) {
                   </button>
                 </div>
                 <p className="help-text">
-                  Get your API key from{' '}
-                  <a
-                    href="https://console.anthropic.com/keys"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    console.anthropic.com
-                  </a>
-                  . Your key is stored locally only.
+                  {provider === 'gemini' && (
+                    <>Get your API key from{' '}
+                      <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener noreferrer">
+                        Google AI Studio
+                      </a>. Leave empty to use the default key.
+                    </>
+                  )}
+                  {provider === 'claude' && (
+                    <>Get your API key from{' '}
+                      <a href="https://console.anthropic.com/keys" target="_blank" rel="noopener noreferrer">
+                        console.anthropic.com
+                      </a>. Your key is stored locally only.
+                    </>
+                  )}
+                  {provider === 'openai' && (
+                    <>Get your API key from{' '}
+                      <a href="https://platform.openai.com/api-keys" target="_blank" rel="noopener noreferrer">
+                        platform.openai.com
+                      </a>. Your key is stored locally only.
+                    </>
+                  )}
                 </p>
               </div>
 
@@ -128,11 +173,11 @@ export default function SettingsModal({ onClose, onSave }) {
                   value={model}
                   onChange={(e) => setModel(e.target.value)}
                 >
-                  <option value="claude-3-5-sonnet-20241022">
-                    Claude 3.5 Sonnet (Recommended)
-                  </option>
-                  <option value="claude-3-opus-20250219">Claude 3 Opus</option>
-                  <option value="claude-3-haiku-20250307">Claude 3 Haiku</option>
+                  {availableModels.map((m) => (
+                    <option key={m} value={m}>
+                      {m}{m === availableModels[0] ? ' (Recommended)' : ''}
+                    </option>
+                  ))}
                 </select>
               </div>
 

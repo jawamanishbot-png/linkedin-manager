@@ -1,5 +1,15 @@
 const STORAGE_KEY = 'linkedinAiConfig'
 
+const PROVIDER_MODELS = {
+  gemini: ['gemini-2.0-flash', 'gemini-1.5-pro', 'gemini-1.5-flash'],
+  claude: ['claude-3-5-sonnet-20241022', 'claude-3-opus-20250219', 'claude-3-haiku-20250307'],
+  openai: ['gpt-4o', 'gpt-4o-mini', 'gpt-3.5-turbo'],
+}
+
+export function getModelsForProvider(provider) {
+  return PROVIDER_MODELS[provider] || PROVIDER_MODELS.gemini
+}
+
 // Get AI config from localStorage
 export function getAiConfig() {
   try {
@@ -14,8 +24,9 @@ export function getAiConfig() {
 // Get default config
 function getDefaultConfig() {
   return {
+    provider: 'gemini',
     apiKey: '',
-    model: 'claude-3-5-sonnet-20241022',
+    model: 'gemini-2.0-flash',
     maxTokens: 1024,
     temperature: 0.7,
     enabled: false,
@@ -44,13 +55,14 @@ export function isAiConfigured() {
   return true
 }
 
-// Call Claude API via backend proxy (avoids CORS)
+// Call AI API via backend proxy (avoids CORS)
 export async function callClaudeApi(prompt, systemPrompt = '') {
   const config = getAiConfig()
 
   const body = {
     prompt,
     systemPrompt,
+    provider: config.provider || 'gemini',
     model: config.model,
     maxTokens: config.maxTokens,
     temperature: config.temperature,
@@ -83,15 +95,15 @@ export async function callClaudeApi(prompt, systemPrompt = '') {
 
 // Generate post from topic
 export async function generatePost(topic) {
-  const prompt = `Generate a professional LinkedIn post about "${topic}". 
-  
+  const prompt = `Generate a professional LinkedIn post about "${topic}".
+
   Requirements:
   - 2-3 paragraphs
   - Engaging and professional tone
   - Include a call-to-action
   - Use relevant LinkedIn best practices
   - Max 3000 characters
-  
+
   Just return the post content, no extra text.`
 
   return await callClaudeApi(prompt)
@@ -100,7 +112,7 @@ export async function generatePost(topic) {
 // Generate hashtags for post
 export async function generateHashtags(postContent) {
   const prompt = `Generate 5-8 relevant LinkedIn hashtags for this post. Return only the hashtags separated by spaces.
-  
+
   Post: "${postContent}"`
 
   return await callClaudeApi(prompt)
@@ -109,9 +121,9 @@ export async function generateHashtags(postContent) {
 // Rewrite post in different tone
 export async function rewritePost(content, tone) {
   const prompt = `Rewrite this LinkedIn post in a ${tone} tone. Keep the main message but adjust the language and style.
-  
+
   Original: "${content}"
-  
+
   Just return the rewritten post, no extra text.`
 
   return await callClaudeApi(prompt)
@@ -124,9 +136,9 @@ export async function improvePost(content) {
   2. Call-to-action
   3. Formatting/readability
   4. Use of emoji
-  
+
   Post: "${content}"
-  
+
   Return the improved version.`
 
   return await callClaudeApi(prompt)
@@ -135,14 +147,14 @@ export async function improvePost(content) {
 // Generate post ideas
 export async function generatePostIdeas(topic) {
   const prompt = `Generate 5 creative LinkedIn post ideas about "${topic}".
-  
+
   Format as:
   1. [Idea 1]
   2. [Idea 2]
   3. [Idea 3]
   4. [Idea 4]
   5. [Idea 5]
-  
+
   Each should be 1-2 sentences describing the post concept.`
 
   return await callClaudeApi(prompt)

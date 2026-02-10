@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest'
-import { getAiConfig, saveAiConfig, isAiConfigured, hasCustomApiKey } from '../aiUtils'
+import { getAiConfig, saveAiConfig, isAiConfigured, hasCustomApiKey, getModelsForProvider } from '../aiUtils'
 
 const localStorageMock = (() => {
   let store = {}
@@ -21,7 +21,8 @@ describe('aiUtils config functions', () => {
   it('returns default config when nothing is saved', () => {
     const config = getAiConfig()
     expect(config.apiKey).toBe('')
-    expect(config.model).toBe('claude-3-5-sonnet-20241022')
+    expect(config.provider).toBe('gemini')
+    expect(config.model).toBe('gemini-2.0-flash')
     expect(config.maxTokens).toBe(1024)
     expect(config.temperature).toBe(0.7)
     expect(config.enabled).toBe(false)
@@ -29,6 +30,7 @@ describe('aiUtils config functions', () => {
 
   it('saves and retrieves config', () => {
     const config = {
+      provider: 'claude',
       apiKey: 'sk-test-key',
       model: 'claude-3-5-sonnet-20241022',
       maxTokens: 2048,
@@ -37,6 +39,7 @@ describe('aiUtils config functions', () => {
     }
     saveAiConfig(config)
     const retrieved = getAiConfig()
+    expect(retrieved.provider).toBe('claude')
     expect(retrieved.apiKey).toBe('sk-test-key')
     expect(retrieved.maxTokens).toBe(2048)
     expect(retrieved.temperature).toBe(0.5)
@@ -70,10 +73,21 @@ describe('aiUtils config functions', () => {
     expect(hasCustomApiKey()).toBe(true)
   })
 
+  it('getModelsForProvider returns correct models for each provider', () => {
+    expect(getModelsForProvider('gemini')).toContain('gemini-2.0-flash')
+    expect(getModelsForProvider('claude')).toContain('claude-3-5-sonnet-20241022')
+    expect(getModelsForProvider('openai')).toContain('gpt-4o')
+  })
+
+  it('getModelsForProvider returns gemini models for unknown provider', () => {
+    expect(getModelsForProvider('unknown')).toContain('gemini-2.0-flash')
+  })
+
   it('handles corrupted localStorage gracefully', () => {
     localStorage.setItem('linkedinAiConfig', 'not-valid-json{{{')
     const config = getAiConfig()
     expect(config.apiKey).toBe('')
+    expect(config.provider).toBe('gemini')
     expect(config.enabled).toBe(false)
   })
 })

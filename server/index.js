@@ -330,47 +330,89 @@ app.get('/api/linkedin/posts', async (req, res) => {
 // --- AI Proxy Route ---
 
 app.post('/api/ai/generate', async (req, res) => {
-  const { prompt, systemPrompt, apiKey, model, maxTokens, temperature } = req.body
+  const { prompt, systemPrompt, apiKey, model, maxTokens, temperature, provider } = req.body
 
-  // Use user's key if provided, otherwise fall back to server-side key
-  const resolvedApiKey = apiKey || process.env.ANTHROPIC_API_KEY
-
-  if (!resolvedApiKey) {
-    return res.status(400).json({ error: 'No API key available. Please configure your own key in settings.' })
-  }
   if (!prompt) {
     return res.status(400).json({ error: 'Prompt is required' })
   }
 
-  try {
-    const response = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'x-api-key': resolvedApiKey,
-        'anthropic-version': '2023-06-01',
-        'content-type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: model || 'claude-3-5-sonnet-20241022',
-        max_tokens: maxTokens || 1024,
-        temperature: temperature ?? 0.7,
-        system: systemPrompt || '',
-        messages: [{ role: 'user', content: prompt }],
-      }),
-    })
+  const resolvedProvider = provider || 'gemini'
 
-    if (!response.ok) {
-      const error = await response.json()
-      return res.status(response.status).json({
-        error: error.error?.message || 'Claude API request failed',
+  try {
+    let text
+
+    if (resolvedProvider === 'gemini') {
+      const resolvedKey = apiKey || process.env.GEMINI_API_KEY
+      if (!resolvedKey) {
+        return res.status(400).json({ error: 'No Gemini API key available. Please configure your own key in settings.' })
+      }
+      const resolvedModel = model || 'gemini-2.0-flash'
+      const url = `https://generativelanguage.googleapis.com/v1beta/models/${resolvedModel}:generateContent?key=${resolvedKey}`
+      const body = {
+        contents: [{ role: 'user', parts: [{ text: prompt }] }],
+        generationConfig: { temperature: temperature ?? 0.7, maxOutputTokens: maxTokens || 1024 },
+      }
+      if (systemPrompt) {
+        body.systemInstruction = { parts: [{ text: systemPrompt }] }
+      }
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify(body),
       })
+      if (!response.ok) {
+        const error = await response.json().catch(() => ({}))
+        return res.status(response.status).json({ error: error.error?.message || 'Gemini API request failed' })
+      }
+      const data = await response.json()
+      text = data.candidates[0].content.parts[0].text
+    } else if (resolvedProvider === 'openai') {
+      const resolvedKey = apiKey || process.env.OPENAI_API_KEY
+      if (!resolvedKey) {
+        return res.status(400).json({ error: 'No OpenAI API key available. Please configure your own key in settings.' })
+      }
+      const messages = []
+      if (systemPrompt) messages.push({ role: 'system', content: systemPrompt })
+      messages.push({ role: 'user', content: prompt })
+      const response = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${resolvedKey}`, 'content-type': 'application/json' },
+        body: JSON.stringify({ model: model || 'gpt-4o-mini', max_tokens: maxTokens || 1024, temperature: temperature ?? 0.7, messages }),
+      })
+      if (!response.ok) {
+        const error = await response.json().catch(() => ({}))
+        return res.status(response.status).json({ error: error.error?.message || 'OpenAI API request failed' })
+      }
+      const data = await response.json()
+      text = data.choices[0].message.content
+    } else {
+      const resolvedKey = apiKey || process.env.ANTHROPIC_API_KEY
+      if (!resolvedKey) {
+        return res.status(400).json({ error: 'No Claude API key available. Please configure your own key in settings.' })
+      }
+      const response = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: { 'x-api-key': resolvedKey, 'anthropic-version': '2023-06-01', 'content-type': 'application/json' },
+        body: JSON.stringify({
+          model: model || 'claude-3-5-sonnet-20241022',
+          max_tokens: maxTokens || 1024,
+          temperature: temperature ?? 0.7,
+          system: systemPrompt || '',
+          messages: [{ role: 'user', content: prompt }],
+        }),
+      })
+      if (!response.ok) {
+        const error = await response.json().catch(() => ({}))
+        return res.status(response.status).json({ error: error.error?.message || 'Claude API request failed' })
+      }
+      const data = await response.json()
+      text = data.content[0].text
     }
 
-    const data = await response.json()
-    res.json({ text: data.content[0].text })
+    res.json({ text })
   } catch (err) {
     console.error('AI proxy error:', err)
-    res.status(500).json({ error: err.message || 'Failed to call Claude API' })
+    res.status(500).json({ error: err.message || 'AI request failed' })
   }
 })
 
