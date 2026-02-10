@@ -164,6 +164,27 @@
   color: #0a66c2;
 }
 
+/* AI toolbar button */
+.toolbar-ai-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  width: auto;
+  padding: 0 10px;
+  font-weight: 600;
+}
+
+.toolbar-ai-btn .ai-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+}
+
+.toolbar-ai-btn.active {
+  background: linear-gradient(135deg, #e9f2ff 0%, #f0e6ff 100%);
+  color: #6b21a8;
+}
+
 .toolbar-italic {
   font-style: italic;
 }

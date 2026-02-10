@@ -4,6 +4,16 @@ import userEvent from '@testing-library/user-event'
 import PostComposer from '../PostComposer'
 import { ToastProvider } from '../ToastNotification'
 
+vi.mock('../../utils/aiUtils', () => ({
+  generatePost: vi.fn(),
+  generatePostIdeas: vi.fn(),
+  generateFromFramework: vi.fn(),
+  improvePost: vi.fn(),
+  rewritePost: vi.fn(),
+  generateHashtags: vi.fn(),
+  generateFirstComment: vi.fn(),
+}))
+
 const renderComposer = (overrides = {}) => {
   const props = {
     content: '',
@@ -21,6 +31,11 @@ const renderComposer = (overrides = {}) => {
     isRetrying: false,
     canUndo: false,
     onUndo: vi.fn(),
+    onAiResult: vi.fn(),
+    onInsertHook: vi.fn(),
+    onInsertEnding: vi.fn(),
+    onInsertTemplate: vi.fn(),
+    onFirstCommentResult: vi.fn(),
     ...overrides,
   }
   const result = render(
@@ -91,11 +106,28 @@ describe('PostComposer', () => {
     expect(screen.getByTitle('Numbered list')).toBeInTheDocument()
   })
 
-  it('renders image, comment, and schedule toggle icons', () => {
+  it('renders image, comment, schedule, and AI toggle icons', () => {
     renderComposer()
     expect(screen.getByTitle('Add image')).toBeInTheDocument()
     expect(screen.getByTitle('First comment')).toBeInTheDocument()
     expect(screen.getByTitle('Schedule')).toBeInTheDocument()
+    expect(screen.getByTitle('AI tools')).toBeInTheDocument()
+  })
+
+  it('toggles AI panel when AI button is clicked', async () => {
+    const user = userEvent.setup()
+    renderComposer()
+
+    // Initially hidden
+    expect(screen.queryByText('Generate Post')).not.toBeInTheDocument()
+
+    // Click to show
+    await user.click(screen.getByTitle('AI tools'))
+    expect(screen.getByText('Generate Post')).toBeInTheDocument()
+
+    // Click to hide
+    await user.click(screen.getByTitle('AI tools'))
+    expect(screen.queryByText('Generate Post')).not.toBeInTheDocument()
   })
 
   it('toggles first comment panel when icon is clicked', async () => {

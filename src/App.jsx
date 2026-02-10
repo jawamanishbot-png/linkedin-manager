@@ -6,7 +6,6 @@ import EditPostModal from './components/EditPostModal'
 import SettingsModal from './components/SettingsModal'
 import LinkedInAuth from './components/LinkedInAuth'
 import PostHistory from './components/PostHistory'
-import AiSidebar from './components/AiSidebar'
 import { ToastProvider, useToast } from './components/ToastNotification'
 import { getLinkedInStatus, publishToLinkedIn } from './utils/linkedinApi'
 import {
@@ -27,8 +26,6 @@ function AppContent() {
   const [showSettingsModal, setShowSettingsModal] = useState(false)
   const [linkedInStatus, setLinkedInStatus] = useState({ connected: false })
   const [publishing, setPublishing] = useState(null)
-  const [showSidebar, setShowSidebar] = useState(true)
-
   // Lifted composer state
   const [composerContent, setComposerContent] = useState('')
   const [composerImage, setComposerImage] = useState(null)
@@ -236,48 +233,28 @@ function AppContent() {
       </header>
 
       <div className="app-layout">
-        <div className="editor-area">
-          <PostComposer
-            content={composerContent}
-            image={composerImage}
-            firstComment={composerFirstComment}
-            onContentChange={setComposerContent}
-            onImageChange={setComposerImage}
-            onFirstCommentChange={setComposerFirstComment}
-            onSaveDraft={handleSaveDraft}
-            onSchedule={handleSchedulePost}
-            aiPreview={aiPreview}
-            onAcceptAi={handleAcceptAi}
-            onDiscardAi={handleDiscardAi}
-            onRetryAi={handleRetryAi}
-            isRetrying={isRetrying}
-            canUndo={contentHistory.length > 0}
-            onUndo={handleUndo}
-          />
-        </div>
-
-        {showSidebar && (
-          <AiSidebar
-            content={composerContent}
-            composerImage={composerImage}
-            firstComment={composerFirstComment}
-            onAiResult={handleAiResult}
-            onInsertHook={handleInsertHook}
-            onInsertEnding={handleInsertEnding}
-            onInsertTemplate={handleInsertTemplate}
-            onFirstCommentResult={handleFirstCommentResult}
-            onToggle={() => setShowSidebar(false)}
-          />
-        )}
-
-        {!showSidebar && (
-          <button
-            className="sidebar-toggle-btn"
-            onClick={() => setShowSidebar(true)}
-          >
-            AI Tools
-          </button>
-        )}
+        <PostComposer
+          content={composerContent}
+          image={composerImage}
+          firstComment={composerFirstComment}
+          onContentChange={setComposerContent}
+          onImageChange={setComposerImage}
+          onFirstCommentChange={setComposerFirstComment}
+          onSaveDraft={handleSaveDraft}
+          onSchedule={handleSchedulePost}
+          aiPreview={aiPreview}
+          onAcceptAi={handleAcceptAi}
+          onDiscardAi={handleDiscardAi}
+          onRetryAi={handleRetryAi}
+          isRetrying={isRetrying}
+          canUndo={contentHistory.length > 0}
+          onUndo={handleUndo}
+          onAiResult={handleAiResult}
+          onInsertHook={handleInsertHook}
+          onInsertEnding={handleInsertEnding}
+          onInsertTemplate={handleInsertTemplate}
+          onFirstCommentResult={handleFirstCommentResult}
+        />
       </div>
 
       <div className="app-below-composer">

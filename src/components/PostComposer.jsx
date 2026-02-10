@@ -2,6 +2,7 @@ import { useState, useRef, useEffect, useCallback } from 'react'
 import { parseDateTime } from '../utils/dateUtils'
 import { toBold, toItalic, toBulletList, toNumberedList, applyFormat } from '../utils/formatUtils'
 import AiOutputPreview from './AiOutputPreview'
+import AiPanel from './AiPanel'
 import { useToast } from './ToastNotification'
 import './PostComposer.css'
 
@@ -49,12 +50,18 @@ export default function PostComposer({
   isRetrying,
   canUndo,
   onUndo,
+  onAiResult,
+  onInsertHook,
+  onInsertEnding,
+  onInsertTemplate,
+  onFirstCommentResult,
 }) {
   const textareaRef = useRef(null)
   const { showToast } = useToast()
 
   const [showFirstComment, setShowFirstComment] = useState(false)
   const [showSchedule, setShowSchedule] = useState(false)
+  const [showAi, setShowAi] = useState(false)
 
   const MAX_CHARS = 3000
   const charCount = content.length
@@ -202,42 +209,34 @@ export default function PostComposer({
 
           {/* Image upload */}
           <label className="toolbar-icon-btn" title="Add image">
-            <input
-              type="file"
-              accept="image/*"
-              style={{ display: 'none' }}
-              onChange={(e) => {
-                const file = e.target.files?.[0]
-                if (!file) return
-                if (file.size > 5 * 1024 * 1024) {
-                  showToast('Image too large. Max 5MB.', 'error')
-                  return
-                }
-                const reader = new FileReader()
-                reader.onload = (ev) => onImageChange(ev.target?.result)
-                reader.readAsDataURL(file)
-                e.target.value = ''
-              }}
-            />
+            <input type="file" accept="image/*" style={{ display: 'none' }} onChange={(e) => {
+              const file = e.target.files?.[0]
+              if (!file) return
+              if (file.size > 5 * 1024 * 1024) { showToast('Image too large. Max 5MB.', 'error'); return }
+              const reader = new FileReader()
+              reader.onload = (ev) => onImageChange(ev.target?.result)
+              reader.readAsDataURL(file)
+              e.target.value = ''
+            }} />
             <svg viewBox="0 0 20 20" fill="currentColor" width="16" height="16"><path fillRule="evenodd" d="M1 5.25A2.25 2.25 0 013.25 3h13.5A2.25 2.25 0 0119 5.25v9.5A2.25 2.25 0 0116.75 17H3.25A2.25 2.25 0 011 14.75v-9.5zm1.5 9.5c0 .414.336.75.75.75h13.5a.75.75 0 00.75-.75v-2.07l-2.72-2.72a.75.75 0 00-1.06 0l-3.22 3.22-1.72-1.72a.75.75 0 00-1.06 0L2.5 13.44v1.31zM14 8a2 2 0 11-4 0 2 2 0 014 0z" clipRule="evenodd" /></svg>
           </label>
 
           {/* First comment toggle */}
-          <button
-            className={`toolbar-icon-btn ${showFirstComment ? 'active' : ''}`}
-            title="First comment"
-            onClick={() => setShowFirstComment(v => !v)}
-          >
+          <button className={`toolbar-icon-btn ${showFirstComment ? 'active' : ''}`} title="First comment" onClick={() => setShowFirstComment(v => !v)}>
             <svg viewBox="0 0 20 20" fill="currentColor" width="16" height="16"><path fillRule="evenodd" d="M3.43 2.524A41.29 41.29 0 0110 2c2.236 0 4.43.18 6.57.524 1.437.231 2.43 1.49 2.43 2.902v5.148c0 1.413-.993 2.67-2.43 2.902a41.102 41.102 0 01-3.55.414c-.28.02-.521.18-.643.413l-1.712 3.293a.75.75 0 01-1.33 0l-1.713-3.293a.783.783 0 00-.642-.413 41.108 41.108 0 01-3.55-.414C1.993 13.245 1 11.986 1 10.574V5.426c0-1.413.993-2.67 2.43-2.902z" clipRule="evenodd" /></svg>
           </button>
 
           {/* Schedule toggle */}
-          <button
-            className={`toolbar-icon-btn ${showSchedule ? 'active' : ''}`}
-            title="Schedule"
-            onClick={() => setShowSchedule(v => !v)}
-          >
+          <button className={`toolbar-icon-btn ${showSchedule ? 'active' : ''}`} title="Schedule" onClick={() => setShowSchedule(v => !v)}>
             <svg viewBox="0 0 20 20" fill="currentColor" width="16" height="16"><path fillRule="evenodd" d="M5.75 2a.75.75 0 01.75.75V4h7V2.75a.75.75 0 011.5 0V4h.25A2.75 2.75 0 0118 6.75v8.5A2.75 2.75 0 0115.25 18H4.75A2.75 2.75 0 012 15.25v-8.5A2.75 2.75 0 014.75 4H5V2.75A.75.75 0 015.75 2zm-1 5.5c-.69 0-1.25.56-1.25 1.25v6.5c0 .69.56 1.25 1.25 1.25h10.5c.69 0 1.25-.56 1.25-1.25v-6.5c0-.69-.56-1.25-1.25-1.25H4.75z" clipRule="evenodd" /></svg>
+          </button>
+
+          <span className="toolbar-sep" />
+
+          {/* AI toggle */}
+          <button className={`toolbar-icon-btn toolbar-ai-btn ${showAi ? 'active' : ''}`} title="AI tools" onClick={() => setShowAi(v => !v)}>
+            <svg viewBox="0 0 20 20" fill="currentColor" width="16" height="16"><path d="M10 1l2.39 6.37L19 9l-5.12 4.63L15.18 20 10 16.27 4.82 20l1.3-6.37L1 9l6.61-1.63L10 1z" /></svg>
+            <span className="ai-label">AI</span>
           </button>
         </div>
 
@@ -250,6 +249,18 @@ export default function PostComposer({
           <CharRing current={charCount} max={MAX_CHARS} />
         </div>
       </div>
+
+      {/* Embedded AI Panel */}
+      {showAi && (
+        <AiPanel
+          content={content}
+          onAiResult={onAiResult}
+          onInsertHook={onInsertHook}
+          onInsertEnding={onInsertEnding}
+          onInsertTemplate={onInsertTemplate}
+          onFirstCommentResult={onFirstCommentResult}
+        />
+      )}
 
       {/* Collapsible: First Comment */}
       {showFirstComment && (
@@ -301,22 +312,9 @@ function ScheduleSection({ onSchedule }) {
         <span>Schedule</span>
       </div>
       <div className="schedule-row">
-        <input
-          type="date"
-          className="schedule-input"
-          value={date}
-          onChange={(e) => setDate(e.target.value)}
-        />
-        <input
-          type="time"
-          className="schedule-input"
-          value={time}
-          onChange={(e) => setTime(e.target.value)}
-        />
-        <button
-          className="composer-btn composer-btn--primary composer-btn--sm"
-          onClick={() => onSchedule(date, time)}
-        >
+        <input type="date" className="schedule-input" value={date} onChange={(e) => setDate(e.target.value)} />
+        <input type="time" className="schedule-input" value={time} onChange={(e) => setTime(e.target.value)} />
+        <button className="composer-btn composer-btn--primary composer-btn--sm" onClick={() => onSchedule(date, time)}>
           Schedule
         </button>
       </div>

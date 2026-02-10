@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import AiSidebar from '../AiSidebar'
+import AiPanel from '../AiPanel'
 
 vi.mock('../../utils/aiUtils', () => ({
   generatePost: vi.fn(),
@@ -13,44 +13,35 @@ vi.mock('../../utils/aiUtils', () => ({
   generateFirstComment: vi.fn(),
 }))
 
-describe('AiSidebar', () => {
+describe('AiPanel', () => {
   const defaultProps = {
     content: '',
-    composerImage: null,
-    firstComment: '',
     onAiResult: vi.fn(),
     onInsertHook: vi.fn(),
     onInsertEnding: vi.fn(),
     onInsertTemplate: vi.fn(),
     onFirstCommentResult: vi.fn(),
-    onToggle: vi.fn(),
   }
 
   beforeEach(() => {
     vi.clearAllMocks()
   })
 
-  it('renders with 4 tabs', () => {
-    render(<AiSidebar {...defaultProps} />)
+  it('renders with 3 tabs', () => {
+    render(<AiPanel {...defaultProps} />)
     expect(screen.getByText('Generate')).toBeInTheDocument()
     expect(screen.getByText('Refine')).toBeInTheDocument()
     expect(screen.getByText('Templates')).toBeInTheDocument()
-    expect(screen.getByText('Preview')).toBeInTheDocument()
-  })
-
-  it('renders AI Tools header', () => {
-    render(<AiSidebar {...defaultProps} />)
-    expect(screen.getByText('AI Tools')).toBeInTheDocument()
   })
 
   it('shows Generate tab content by default', () => {
-    render(<AiSidebar {...defaultProps} />)
+    render(<AiPanel {...defaultProps} />)
     expect(screen.getByPlaceholderText(/Enter a topic/)).toBeInTheDocument()
     expect(screen.getByText('Generate Post')).toBeInTheDocument()
   })
 
   it('shows all 10 framework chips in Generate tab', () => {
-    render(<AiSidebar {...defaultProps} />)
+    render(<AiPanel {...defaultProps} />)
     expect(screen.getByText('Contrarian Take')).toBeInTheDocument()
     expect(screen.getByText('Personal Story')).toBeInTheDocument()
     expect(screen.getByText('Data Insights')).toBeInTheDocument()
@@ -65,7 +56,7 @@ describe('AiSidebar', () => {
 
   it('shows framework detail when a chip is clicked', async () => {
     const user = userEvent.setup()
-    render(<AiSidebar {...defaultProps} />)
+    render(<AiPanel {...defaultProps} />)
 
     await user.click(screen.getByText('Contrarian Take'))
     expect(screen.getByText(/Challenge conventional wisdom/)).toBeInTheDocument()
@@ -74,7 +65,7 @@ describe('AiSidebar', () => {
 
   it('shows "Use Template" button for frameworks with templates', async () => {
     const user = userEvent.setup()
-    render(<AiSidebar {...defaultProps} />)
+    render(<AiPanel {...defaultProps} />)
 
     await user.click(screen.getByText('Contrarian Take'))
     expect(screen.getByText('Use Template')).toBeInTheDocument()
@@ -82,7 +73,7 @@ describe('AiSidebar', () => {
 
   it('does not show "Use Template" for AI-only frameworks', async () => {
     const user = userEvent.setup()
-    render(<AiSidebar {...defaultProps} />)
+    render(<AiPanel {...defaultProps} />)
 
     await user.click(screen.getByText('Trending Topics'))
     expect(screen.queryByText('Use Template')).not.toBeInTheDocument()
@@ -91,7 +82,7 @@ describe('AiSidebar', () => {
   it('calls onInsertTemplate when Use Template is clicked', async () => {
     const user = userEvent.setup()
     const onInsertTemplate = vi.fn()
-    render(<AiSidebar {...defaultProps} onInsertTemplate={onInsertTemplate} />)
+    render(<AiPanel {...defaultProps} onInsertTemplate={onInsertTemplate} />)
 
     await user.click(screen.getByText('Contrarian Take'))
     await user.click(screen.getByText('Use Template'))
@@ -101,7 +92,7 @@ describe('AiSidebar', () => {
 
   it('switches to Refine tab and shows actions', async () => {
     const user = userEvent.setup()
-    render(<AiSidebar {...defaultProps} content="Some content" />)
+    render(<AiPanel {...defaultProps} content="Some content" />)
 
     await user.click(screen.getByText('Refine'))
     expect(screen.getByText('Improve Post')).toBeInTheDocument()
@@ -112,7 +103,7 @@ describe('AiSidebar', () => {
 
   it('shows empty hint in Refine tab when no content', async () => {
     const user = userEvent.setup()
-    render(<AiSidebar {...defaultProps} content="" />)
+    render(<AiPanel {...defaultProps} content="" />)
 
     await user.click(screen.getByText('Refine'))
     expect(screen.getByText(/Write some content first/)).toBeInTheDocument()
@@ -120,7 +111,7 @@ describe('AiSidebar', () => {
 
   it('disables refine actions when content is empty', async () => {
     const user = userEvent.setup()
-    render(<AiSidebar {...defaultProps} content="" />)
+    render(<AiPanel {...defaultProps} content="" />)
 
     await user.click(screen.getByText('Refine'))
     expect(screen.getByText('Improve Post')).toBeDisabled()
@@ -129,7 +120,7 @@ describe('AiSidebar', () => {
 
   it('shows tone options in Refine tab', async () => {
     const user = userEvent.setup()
-    render(<AiSidebar {...defaultProps} content="Post" />)
+    render(<AiPanel {...defaultProps} content="Post" />)
 
     await user.click(screen.getByText('Refine'))
     expect(screen.getByText('Professional')).toBeInTheDocument()
@@ -139,7 +130,7 @@ describe('AiSidebar', () => {
 
   it('switches to Templates tab and shows categories', async () => {
     const user = userEvent.setup()
-    render(<AiSidebar {...defaultProps} />)
+    render(<AiPanel {...defaultProps} />)
 
     await user.click(screen.getByText('Templates'))
     expect(screen.getByText('Story')).toBeInTheDocument()
@@ -151,7 +142,7 @@ describe('AiSidebar', () => {
 
   it('shows hook templates when a category is selected', async () => {
     const user = userEvent.setup()
-    render(<AiSidebar {...defaultProps} />)
+    render(<AiPanel {...defaultProps} />)
 
     await user.click(screen.getByText('Templates'))
     // Story is default category
@@ -161,7 +152,7 @@ describe('AiSidebar', () => {
   it('calls onInsertHook when a hook template is clicked', async () => {
     const user = userEvent.setup()
     const onInsertHook = vi.fn()
-    render(<AiSidebar {...defaultProps} onInsertHook={onInsertHook} />)
+    render(<AiPanel {...defaultProps} onInsertHook={onInsertHook} />)
 
     await user.click(screen.getByText('Templates'))
     await user.click(screen.getByText(/I made a mistake/))
@@ -170,7 +161,7 @@ describe('AiSidebar', () => {
 
   it('shows endings in Templates tab', async () => {
     const user = userEvent.setup()
-    render(<AiSidebar {...defaultProps} />)
+    render(<AiPanel {...defaultProps} />)
 
     await user.click(screen.getByText('Templates'))
     expect(screen.getByText(/What do you think/)).toBeInTheDocument()
@@ -180,22 +171,11 @@ describe('AiSidebar', () => {
   it('calls onInsertEnding when an ending is clicked', async () => {
     const user = userEvent.setup()
     const onInsertEnding = vi.fn()
-    render(<AiSidebar {...defaultProps} onInsertEnding={onInsertEnding} />)
+    render(<AiPanel {...defaultProps} onInsertEnding={onInsertEnding} />)
 
     await user.click(screen.getByText('Templates'))
     await user.click(screen.getByText(/What do you think/))
     expect(onInsertEnding).toHaveBeenCalledWith('What do you think? Drop your thoughts below.')
-  })
-
-  it('calls onToggle when close button is clicked', async () => {
-    const user = userEvent.setup()
-    const onToggle = vi.fn()
-    render(<AiSidebar {...defaultProps} onToggle={onToggle} />)
-
-    // The close button with ✕
-    const closeBtn = screen.getByText('\u2715')
-    await user.click(closeBtn)
-    expect(onToggle).toHaveBeenCalledTimes(1)
   })
 
   it('calls generateFromFramework when generating with a framework', async () => {
@@ -204,7 +184,7 @@ describe('AiSidebar', () => {
 
     const user = userEvent.setup()
     const onAiResult = vi.fn()
-    render(<AiSidebar {...defaultProps} onAiResult={onAiResult} />)
+    render(<AiPanel {...defaultProps} onAiResult={onAiResult} />)
 
     await user.click(screen.getByText('Contrarian Take'))
     const input = screen.getByPlaceholderText(/common belief/)
@@ -223,7 +203,7 @@ describe('AiSidebar', () => {
 
     const user = userEvent.setup()
     const onAiResult = vi.fn()
-    render(<AiSidebar {...defaultProps} content="Draft post" onAiResult={onAiResult} />)
+    render(<AiPanel {...defaultProps} content="Draft post" onAiResult={onAiResult} />)
 
     await user.click(screen.getByText('Refine'))
     await user.click(screen.getByText('Improve Post'))
@@ -238,7 +218,7 @@ describe('AiSidebar', () => {
     improvePost.mockRejectedValue(new Error('API error'))
 
     const user = userEvent.setup()
-    render(<AiSidebar {...defaultProps} content="Draft" />)
+    render(<AiPanel {...defaultProps} content="Draft" />)
 
     await user.click(screen.getByText('Refine'))
     await user.click(screen.getByText('Improve Post'))
@@ -251,13 +231,13 @@ describe('AiSidebar', () => {
     improvePost.mockRejectedValue(new Error('Something failed'))
 
     const user = userEvent.setup()
-    render(<AiSidebar {...defaultProps} content="Draft" />)
+    render(<AiPanel {...defaultProps} content="Draft" />)
 
     await user.click(screen.getByText('Refine'))
     await user.click(screen.getByText('Improve Post'))
 
     await screen.findByText('Something failed')
-    const errorDiv = screen.getByText('Something failed').closest('.sidebar-error')
+    const errorDiv = screen.getByText('Something failed').closest('.panel-error')
     await user.click(errorDiv.querySelector('button'))
 
     expect(screen.queryByText('Something failed')).not.toBeInTheDocument()
