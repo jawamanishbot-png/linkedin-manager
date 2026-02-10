@@ -15,7 +15,6 @@ import {
   deletePost,
   updatePost,
   publishPost,
-  initializeSampleData,
 } from './utils/postUtils'
 import './App.css'
 
@@ -74,7 +73,6 @@ function AppContent() {
   }, [showToast])
 
   useEffect(() => {
-    initializeSampleData()
     const loadedPosts = getAllPosts()
     setPosts(loadedPosts)
     getLinkedInStatus().then(setLinkedInStatus)

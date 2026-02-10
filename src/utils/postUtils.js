@@ -127,37 +127,3 @@ export function clearAllPosts() {
   localStorage.removeItem(STORAGE_KEY)
 }
 
-// Initialize with sample data (optional)
-export function initializeSampleData() {
-  const existing = getAllPosts()
-  if (existing.length > 0) return // Don't overwrite
-
-  const samplePosts = [
-    {
-      id: Date.now().toString(),
-      content: 'Just launched my new course on web development! 🚀 Check it out and let me know what you think.',
-      image: null,
-      scheduledTime: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString(), // 3 days from now
-      status: 'scheduled',
-      createdAt: new Date().toISOString(),
-    },
-    {
-      id: (Date.now() - 1000).toString(),
-      content: 'Weekly tip: Always break down big problems into smaller, manageable tasks. What\'s your go-to productivity hack?',
-      image: null,
-      scheduledTime: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString(), // 5 days from now
-      status: 'scheduled',
-      createdAt: new Date().toISOString(),
-    },
-    {
-      id: (Date.now() - 2000).toString(),
-      content: 'Currently reading "Atomic Habits" - highly recommend it for anyone looking to improve their workflow.',
-      image: null,
-      scheduledTime: null,
-      status: 'draft',
-      createdAt: new Date().toISOString(),
-    },
-  ]
-
-  saveAllPosts(samplePosts)
-}

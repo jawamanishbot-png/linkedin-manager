@@ -12,15 +12,6 @@ vi.mock('../utils/linkedinApi', () => ({
   getLinkedInPosts: vi.fn().mockResolvedValue({ posts: [] }),
 }))
 
-// Partially mock postUtils to control sample data initialization
-vi.mock('../utils/postUtils', async () => {
-  const actual = await vi.importActual('../utils/postUtils')
-  return {
-    ...actual,
-    initializeSampleData: vi.fn(), // no-op by default; tests that need sample data call the real one
-  }
-})
-
 vi.mock('../utils/aiUtils', () => ({
   generatePost: vi.fn(),
   generatePostIdeas: vi.fn(),
@@ -66,12 +57,43 @@ describe('App E2E Integration Tests', () => {
     fireEvent.change(textarea, { target: { value } })
   }
 
-  // Helper: render app with sample data pre-loaded
-  const renderAppWithSampleData = async () => {
-    const { initializeSampleData: realInit } = await vi.importActual('../utils/postUtils')
-    realInit()
-    const result = renderApp()
-    return result
+  // Helper: seed test posts into localStorage and render app
+  const seedTestPosts = () => {
+    const posts = [
+      {
+        id: '1001',
+        content: 'Just launched my new course on web development!',
+        image: null,
+        firstComment: null,
+        scheduledTime: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString(),
+        status: 'scheduled',
+        createdAt: new Date().toISOString(),
+      },
+      {
+        id: '1002',
+        content: 'Weekly tip: Always break down big problems into smaller tasks.',
+        image: null,
+        firstComment: null,
+        scheduledTime: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString(),
+        status: 'scheduled',
+        createdAt: new Date().toISOString(),
+      },
+      {
+        id: '1003',
+        content: 'Currently reading "Atomic Habits" - highly recommend it.',
+        image: null,
+        firstComment: null,
+        scheduledTime: null,
+        status: 'draft',
+        createdAt: new Date().toISOString(),
+      },
+    ]
+    localStorage.setItem('linkedinPosts', JSON.stringify(posts))
+  }
+
+  const renderAppWithTestData = () => {
+    seedTestPosts()
+    return renderApp()
   }
 
   // ─── Flow 1: App initialization & layout ───────────────────────────
@@ -87,18 +109,15 @@ describe('App E2E Integration Tests', () => {
       expect(screen.getByText('Connect LinkedIn')).toBeInTheDocument()
     })
 
-    it('loads sample data on first visit and displays posts', async () => {
-      await renderAppWithSampleData()
+    it('starts with an empty post list on first visit', async () => {
+      renderApp()
 
-      // Sample data includes 3 posts (2 scheduled, 1 draft)
       await waitFor(() => {
-        expect(screen.getByText(/Just launched my new course/)).toBeInTheDocument()
+        expect(screen.getByText(/No posts yet/)).toBeInTheDocument()
       })
-      expect(screen.getByText(/Weekly tip: Always break down/)).toBeInTheDocument()
-      expect(screen.getByText(/Currently reading "Atomic Habits"/)).toBeInTheDocument()
     })
 
-    it('does not overwrite existing localStorage data', async () => {
+    it('loads existing posts from localStorage', async () => {
       localStorage.setItem('linkedinPosts', JSON.stringify([{
         id: '999',
         content: 'My existing post',
@@ -114,8 +133,6 @@ describe('App E2E Integration Tests', () => {
       await waitFor(() => {
         expect(screen.getByText('My existing post')).toBeInTheDocument()
       })
-      // Sample data should NOT appear since initializeSampleData is mocked
-      expect(screen.queryByText(/Just launched my new course/)).not.toBeInTheDocument()
     })
   })
 
@@ -268,9 +285,9 @@ describe('App E2E Integration Tests', () => {
 
   describe('Post list filtering', () => {
     it('filters posts by status using filter tabs', async () => {
-      await renderAppWithSampleData()
+      renderAppWithTestData()
 
-      // Wait for sample data to load (2 scheduled + 1 draft)
+      // Wait for test data to load (2 scheduled + 1 draft)
       await waitFor(() => {
         expect(screen.getByText(/Just launched my new course/)).toBeInTheDocument()
       })
@@ -300,9 +317,9 @@ describe('App E2E Integration Tests', () => {
 
   describe('Edit post flow', () => {
     it('opens edit modal, modifies content, and saves', async () => {
-      await renderAppWithSampleData()
+      renderAppWithTestData()
 
-      // Wait for sample data
+      // Wait for test data
       await waitFor(() => {
         expect(screen.getByText(/Currently reading "Atomic Habits"/)).toBeInTheDocument()
       })
@@ -332,7 +349,7 @@ describe('App E2E Integration Tests', () => {
     })
 
     it('cancels edit without saving changes', async () => {
-      await renderAppWithSampleData()
+      renderAppWithTestData()
 
       await waitFor(() => {
         expect(screen.getByText(/Currently reading "Atomic Habits"/)).toBeInTheDocument()
@@ -361,7 +378,7 @@ describe('App E2E Integration Tests', () => {
 
   describe('Delete post flow', () => {
     it('deletes a post after confirmation', async () => {
-      await renderAppWithSampleData()
+      renderAppWithTestData()
 
       await waitFor(() => {
         expect(screen.getByText(/Currently reading "Atomic Habits"/)).toBeInTheDocument()
@@ -381,7 +398,7 @@ describe('App E2E Integration Tests', () => {
     it('does not delete when confirmation is cancelled', async () => {
       window.confirm.mockReturnValue(false)
 
-      await renderAppWithSampleData()
+      renderAppWithTestData()
 
       await waitFor(() => {
         expect(screen.getByText(/Currently reading "Atomic Habits"/)).toBeInTheDocument()
@@ -801,9 +818,9 @@ describe('App E2E Integration Tests', () => {
       const { getLinkedInStatus } = await import('../utils/linkedinApi')
       getLinkedInStatus.mockResolvedValue({ connected: false })
 
-      await renderAppWithSampleData()
+      renderAppWithTestData()
 
-      // Wait for sample data to load and LinkedIn status to resolve
+      // Wait for test data to load and LinkedIn status to resolve
       await waitFor(() => {
         expect(screen.getByText(/Just launched my new course/)).toBeInTheDocument()
       })
@@ -833,7 +850,7 @@ describe('App E2E Integration Tests', () => {
       })
       publishToLinkedIn.mockResolvedValue({ success: true })
 
-      await renderAppWithSampleData()
+      renderAppWithTestData()
 
       // Wait for posts and connected status
       await waitFor(() => {
@@ -863,7 +880,7 @@ describe('App E2E Integration Tests', () => {
       })
       publishToLinkedIn.mockRejectedValue(new Error('LinkedIn API error'))
 
-      await renderAppWithSampleData()
+      renderAppWithTestData()
 
       await waitFor(() => {
         expect(screen.getByText('LinkedIn Connected')).toBeInTheDocument()
