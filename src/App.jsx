@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
+import { Analytics } from '@vercel/analytics/react'
 import PostComposer from './components/PostComposer'
 import PostList from './components/PostList'
 import PostCalendar from './components/PostCalendar'
@@ -296,6 +297,7 @@ export default function App() {
   return (
     <ToastProvider>
       <AppContent />
+      <Analytics />
     </ToastProvider>
   )
 }
